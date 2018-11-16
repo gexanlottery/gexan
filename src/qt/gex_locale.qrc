@@ -1,0 +1,17 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="ca">locale/gex_ca.qm</file>
+        <file alias="da">locale/gex_da.qm</file>
+        <file alias="de">locale/gex_de.qm</file>
+        <file alias="en">locale/gex_en.qm</file>
+        <file alias="en_US">locale/gex_en_US.qm</file>
+        <file alias="es">locale/gex_es.qm</file>
+        <file alias="fr_FR">locale/gex_fr_FR.qm</file>
+        <file alias="it">locale/gex_it.qm</file>
+        <file alias="ja">locale/gex_ja.qm</file>
+        <file alias="pt">locale/gex_pt.qm</file>
+        <file alias="ro_RO">locale/gex_ro_RO.qm</file>
+        <file alias="ru">locale/gex_ru.qm</file>
+        <file alias="zh_TW">locale/gex_zh_TW.qm</file>
+    </qresource>
+</RCC>

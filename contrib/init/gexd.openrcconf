@@ -1,0 +1,26 @@
+# /etc/conf.d/gexd: config file for /etc/init.d/gexd
+
+# Config file location
+#BITCOIND_CONFIGFILE="/etc/gex/gex.conf"
+
+# What directory to write pidfile to?  (created and owned by $BITCOIND_USER)
+#BITCOIND_PIDDIR="/var/run/gexd"
+
+# What filename to give the pidfile
+#BITCOIND_PIDFILE="${BITCOIND_PIDDIR}/gexd.pid"
+
+# Where to write gexd data (be mindful that the blockchain is large)
+#BITCOIND_DATADIR="/var/lib/gexd"
+
+# User and group to own gexd process
+#BITCOIND_USER="gex"
+#BITCOIND_GROUP="gex"
+
+# Path to gexd executable
+#BITCOIND_BIN="/usr/bin/gexd"
+
+# Nice value to run gexd under
+#BITCOIND_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+BITCOIND_OPTS=""

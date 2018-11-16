@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Gex
+Comment=Gex P2P Cryptocurrency
+Exec=gex-qt %u
+Terminal=false
+Type=Application
+Icon=gex128
+MimeType=x-scheme-handler/gex;
+Categories=Office;Finance;
+Name[en_US]=Gex

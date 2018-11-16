@@ -1,0 +1,101 @@
+# Version 4.0.0
+===============
++Wallet version upgraded
++New Wallet UI
++Upgraded masternode system
++Added 1 click build wins, linux & osx
++Added Cryptopia trading UI 
+
+# Version 3.0.5
+===============
++Added Cryptopia trading dialog
+
+# Version 3.0.4
+===============
++Balance cpu threads usage
++Activate diffplot
+
+# Version 3.0.3
+===============
++Fixed wallet lagging
++Reduced cpu threads usage
++Show Masternode List & (Keep updating actived masternode)
++Fixed PoS 1.2GEX instead of 2GEX  
+
+# Version 3.0.2
+===============
++Restored wins qt wallet
+
+# Version 3.0.1
+===============
++Fix for init_blockindex bug
++Updated bootstrap (15 nov)
++Windows version for first time users of Gex Wallet (fixes statup issue from version 3.0.0)
++For users of previous Gex Wallets this update is not required
+
+
+# Version 3.0.0
+===============
++Changed vNode.emty to vNode < 3 in miner.cpp
++Upgraded multisig-wallet
++Added IsInitialBlockDownload
++Added GetMNCollateral
++Improved MN functions
++Prepared to initilised gexgate
++Fixed QT wallet CPU threads exhausted
+
+# Version 2.2.4
+===============
++Updated Gex Logo
++Reduced masternode expiration second
++Reduced masternode removal second
++Changed  payee = winner.payee to Tx
++Forced upgraded blockhash --> Added Masternode payment request sync
++Added Splited up masternode hash
++Added Moved masternode hash around, the closest masternode to that point wins
++Added Calculate distance between target point and masternode point
++Increased search existing masternode list, this is where we update existing with new dsee broadcasts
++Fixed seednode error
+
+# Version 2.2.3
+===============
++Fixed Masternode payment error
+
+# Version 2.2.2
+===============
++Fixed Masternode Pubkey
++Added Masternode Config
+
+# Version 2.2.1
+===============
++Upgraded QT wallet UI
++Added PoS automate function
++Added client control function
++Added network statistics into block explorer 
++Redesign dashboard tab
+# Version 2.2.0
+===============
++Fixed Sync error
++Fixed seednode
++Fixed network protocol
++Fixed some typo
+
+# Version 2.1.0
+===============
++Fixed Typo
++Added new checkpoint
++Added Block brownser.cpp & blockbrownser.h
++Update QT wallet UI
++Added Block Explorer UI
+
+# Version 2.0.0
+==============
++Reduced outbounce connection to 12
++Add more seednodes
++Inscreased faster peers
++Fixed qt version missmatch
+
+
+
+
+

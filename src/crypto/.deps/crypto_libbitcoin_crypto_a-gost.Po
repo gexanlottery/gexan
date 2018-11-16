@@ -1,0 +1,83 @@
+crypto/crypto_libbitcoin_crypto_a-gost.o: crypto/gost.c \
+ /usr/share/mingw-w64/include/stdio.h \
+ /usr/share/mingw-w64/include/crtdefs.h \
+ /usr/share/mingw-w64/include/_mingw.h \
+ /usr/share/mingw-w64/include/_mingw_mac.h \
+ /usr/share/mingw-w64/include/_mingw_secapi.h \
+ /usr/share/mingw-w64/include/vadefs.h \
+ /usr/share/mingw-w64/include/sdks/_mingw_directx.h \
+ /usr/share/mingw-w64/include/sdks/_mingw_ddk.h \
+ /usr/share/mingw-w64/include/_mingw_print_push.h \
+ /usr/share/mingw-w64/include/_mingw_off_t.h \
+ /usr/x86_64-w64-mingw32/include/swprintf.inl \
+ /usr/share/mingw-w64/include/sec_api/stdio_s.h \
+ /usr/share/mingw-w64/include/_mingw_print_pop.h \
+ /usr/share/mingw-w64/include/stdlib.h \
+ /usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/syslimits.h \
+ /usr/share/mingw-w64/include/limits.h \
+ /usr/share/mingw-w64/include/sec_api/stdlib_s.h \
+ /usr/share/mingw-w64/include/malloc.h \
+ /usr/share/mingw-w64/include/memory.h \
+ /usr/share/mingw-w64/include/sec_api/memory_s.h \
+ /usr/share/mingw-w64/include/math.h crypto/sph_gost.h \
+ /usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stddef.h \
+ /usr/share/mingw-w64/include/stddef.h crypto/sph_types.h \
+ /usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stdint.h \
+ /usr/share/mingw-w64/include/stdint.h
+
+/usr/share/mingw-w64/include/stdio.h:
+
+/usr/share/mingw-w64/include/crtdefs.h:
+
+/usr/share/mingw-w64/include/_mingw.h:
+
+/usr/share/mingw-w64/include/_mingw_mac.h:
+
+/usr/share/mingw-w64/include/_mingw_secapi.h:
+
+/usr/share/mingw-w64/include/vadefs.h:
+
+/usr/share/mingw-w64/include/sdks/_mingw_directx.h:
+
+/usr/share/mingw-w64/include/sdks/_mingw_ddk.h:
+
+/usr/share/mingw-w64/include/_mingw_print_push.h:
+
+/usr/share/mingw-w64/include/_mingw_off_t.h:
+
+/usr/x86_64-w64-mingw32/include/swprintf.inl:
+
+/usr/share/mingw-w64/include/sec_api/stdio_s.h:
+
+/usr/share/mingw-w64/include/_mingw_print_pop.h:
+
+/usr/share/mingw-w64/include/stdlib.h:
+
+/usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/limits.h:
+
+/usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/syslimits.h:
+
+/usr/share/mingw-w64/include/limits.h:
+
+/usr/share/mingw-w64/include/sec_api/stdlib_s.h:
+
+/usr/share/mingw-w64/include/malloc.h:
+
+/usr/share/mingw-w64/include/memory.h:
+
+/usr/share/mingw-w64/include/sec_api/memory_s.h:
+
+/usr/share/mingw-w64/include/math.h:
+
+crypto/sph_gost.h:
+
+/usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stddef.h:
+
+/usr/share/mingw-w64/include/stddef.h:
+
+crypto/sph_types.h:
+
+/usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stdint.h:
+
+/usr/share/mingw-w64/include/stdint.h:
