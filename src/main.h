@@ -188,7 +188,7 @@ void updateBlockSizeParams(unsigned int newBlockSize);
 inline bool IsProtocolV2(int nHeight) { return IsTestNet() || nHeight > 0; }
 inline int64_t GetMNCollateral(int nHeight) {
     if (IsTestNet() || Params().NetworkID() == CBaseChainParams::SEGWITTEST) return 50;
-    return nHeight>=3000000 ? 5000 : 1999999;
+    return 5000;
 }
 
 struct BlockHasher {
