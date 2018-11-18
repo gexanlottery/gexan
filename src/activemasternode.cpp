@@ -2,8 +2,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "protocol.h"
 #include "activemasternode.h"
+#include "addrman.h"
+#include "masternode.h"
+#include "masternodeconfig.h"
+#include "protocol.h"
+#include "spork.h"
 #include <boost/lexical_cast.hpp>
 #include "clientversion.h"
 
@@ -417,9 +421,32 @@ bool CActiveMasternode::GetVinFromOutput(COutput out, CTxIn& vin, CPubKey& pubke
 vector<COutput> CActiveMasternode::SelectCoinsMasternode() {
     vector<COutput> vCoins;
     vector<COutput> filteredCoins;
+    vector<COutPoint> confLockedCoins;
+
+// Temporary unlock MN coins from masternode.conf
+    if (GetBoolArg("-mnconflock", true)) {
+        uint256 mnTxHash;
+        for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
+            mnTxHash.SetHex(mne.getTxHash());
+
+            int nIndex;
+            if(!mne.castOutputIndex(nIndex))
+                continue;
+
+            COutPoint outpoint = COutPoint(mnTxHash, nIndex);
+            confLockedCoins.push_back(outpoint);
+            pwalletMain->UnlockCoin(outpoint);
+        }
+    }
 
     // Retrieve all possible outputs
     pwalletMain->AvailableCoinsMN(vCoins);
+
+    // Lock MN coins from masternode.conf back if they where temporary unlocked
+    if (!confLockedCoins.empty()) {
+        for (COutPoint outpoint : confLockedCoins)
+            pwalletMain->LockCoin(outpoint);
+}
 
     // Filter
     for (const COutput& out : vCoins) {
