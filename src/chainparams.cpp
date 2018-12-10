@@ -83,7 +83,6 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
                 ( 0,   uint256("0x0000016a02340c579e4c3fc7ebf3698a1a3ed34eed9eb3e9f38d39b9ad3d2897") )
 
-
 ;
 
 static const Checkpoints::CCheckpointData data = {
@@ -133,22 +132,22 @@ public:
         consensus.nMajorityWindow = 1000;
         //consensus.BIP34Height = 227931;
         //consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-        consensus.powLimit = uint256S("0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
+        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
         consensus.nPowTargetTimespan = 30 * 60;
         consensus.nPowTargetSpacing = 1 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 1026; // 95% of 1080 is 1026
         consensus.nMinerConfirmationWindow = 1080; // nPowTargetTimespan / nPowTargetSpacing
-        consensus.nLastPOWBlock = 500;
+        consensus.nLastPOWBlock = 1800;
         // Deployment of SegWit (BIP141 and BIP143)
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1561964014; // 01/07/2018
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1561964034; // 01/07/2019
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1544639775; // 01/07/2018
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1571964034; // 01/07/2019
 
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1561964014; // 01/07/2018
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1561964034; // 01/07/2019
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1544639775; // 01/07/2018
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1571964034; // 01/07/2019
 
         //SMART_CONTRACTS_HARDFORK deployment does not require start time and timeout, because it uses block number
         //This is not used now, because we need to check this bit in block.h using versionbits, which results in cyclic
@@ -156,10 +155,10 @@ public:
         //TODO: fix cyclic dependency
         consensus.vDeployments[Consensus::SMART_CONTRACTS_HARDFORK].bit = 30;
 
-        nSwitchPhi2Block = 30000;
-        nFirstSCBlock = 30000;
-        nPruneAfterHeight = 100000;
-        nSplitRewardBlock = 100000;
+        nSwitchPhi2Block = 9930000;
+        nFirstSCBlock = 10000;
+        nPruneAfterHeight = 9100000;
+        nSplitRewardBlock = 9100000;
 
 
         /**
@@ -235,7 +234,7 @@ public:
         nPoolMaxTransactions = 3;
         strSporkKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
 
-        strDarksendPoolDummyAddress = "GJpTvTXRFSfFF5ogDh1JTdVysKMS3zQrpH";
+        strDarksendPoolDummyAddress = "GJQMPgtHpRzZH6fVToAoeg1ruG9yX8m14a";
         nStartMasternodePayments = 1540218192; 
 
         nStakingRoundPeriod = 60; 
