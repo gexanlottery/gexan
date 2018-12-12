@@ -169,8 +169,8 @@ UniValue getdifficulty(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    CBlockIndex* powTip = GetLastBlockOfType(0);
-    return GetDifficulty(powTip);
+    CBlockIndex* posTip = GetLastBlockOfType(1);
+    return GetDifficulty(posTip);
 }
 
 UniValue getrawmempool(const UniValue& params, bool fHelp)
@@ -1089,13 +1089,13 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
         );
 
     LOCK(cs_main);
-    CBlockIndex* powTip = GetLastBlockOfType(0);
+    CBlockIndex* posTip = GetLastBlockOfType(1);
     UniValue obj(UniValue::VOBJ);
     obj.push_back(Pair("chain",                 Params().NetworkIDString()));
     obj.push_back(Pair("blocks",                chainActive.Height()));
     obj.push_back(Pair("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1));
     obj.push_back(Pair("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("difficulty",            (double)GetDifficulty(powTip)));
+    obj.push_back(Pair("difficulty",            (double)GetDifficulty(posTip)));
     obj.push_back(Pair("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast()));
     obj.push_back(Pair("verificationprogress",  Checkpoints::GuessVerificationProgress(Params().Checkpoints(), chainActive.Tip())));
     obj.push_back(Pair("chainwork",             chainActive.Tip()->nChainWork.GetHex()));
