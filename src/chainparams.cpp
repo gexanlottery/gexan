@@ -161,7 +161,7 @@ public:
         nSwitchPhi2Block = 5;
         nFirstSCBlock = 40;
         nPruneAfterHeight = 650000;
-        nSplitRewardBlock = 200;
+        nSplitRewardBlock = 250;
 
 
         /**
