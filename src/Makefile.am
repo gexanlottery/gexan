@@ -72,10 +72,13 @@ endif
 BITCOIN_CORE_H = \
   activemasternode.h \
   addrman.h \
+  addressindex.h \
   alert.h \
   allocators.h \
   amount.h \
   base58.h \
+  bip39.h \
+  bip39_english.h \
   bech32.h \
   bip38.h \
   bloom.h \
@@ -97,10 +100,12 @@ BITCOIN_CORE_H = \
   consensus/params.h \
   core_io.h \
   core_memusage.h \
+  cuckoocache.h \
   crypter.h \
   darksend.h \
   db.h \
   hash.h \
+  hdchain.h \
   indirectmap.h \
   init.h \
   instantx.h \
@@ -145,11 +150,13 @@ BITCOIN_CORE_H = \
   script/standard.h \
   script/script_error.h \
   serialize.h \
+  spentindex.h \
   spork.h \
   stake.h \
   streams.h \
   support/allocators/zeroafterfree.h \
   support/cleanse.h \
+  support/events.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -222,7 +229,6 @@ libbitcoin_server_a_SOURCES = \
   validationinterface.cpp \
   versionbits.cpp \
   gex/gexstate.cpp \
-  gex/gextransaction.cpp \
   gex/gexDGP.cpp \
   gex/storageresults.cpp \
   $(BITCOIN_CORE_H)
@@ -320,6 +326,8 @@ crypto_libbitcoin_crypto_a_SOURCES = \
 if USE_ASM
 crypto/crypto_libbitcoin_crypto_a-sha256.$(OBJEXT) : CXXFLAGS += -DUSE_ASM
 crypto/crypto_libbitcoin_crypto_a-sha256_sse4.$(OBJEXT) : CXXFLAGS += $(SSE42_CXXFLAGS) -DUSE_ASM
+crypto/libbitcoin_crypto_a-sha256.$(OBJEXT) : CXXFLAGS += -DUSE_ASM
+crypto/libbitcoin_crypto_a-sha256_sse4.$(OBJEXT) : CXXFLAGS += $(SSE42_CXXFLAGS) -DUSE_ASM
 crypto_libbitcoin_crypto_a_SOURCES += crypto/sha256_sse4.cpp
 endif
 
@@ -387,6 +395,7 @@ libbitcoin_common_a_SOURCES = \
   allocators.cpp \
   amount.cpp \
   base58.cpp \
+  bip39.cpp \
   bech32.cpp \
   bip38.cpp \
   chainparams.cpp \
@@ -397,6 +406,7 @@ libbitcoin_common_a_SOURCES = \
   core_read.cpp \
   core_write.cpp \
   hash.cpp \
+  hdchain.cpp \
   key.cpp \
   keystore.cpp \
   netbase.cpp \
@@ -568,7 +578,6 @@ libbitcoin_common_a_SOURCES = \
   cpp-ethereum/libethash/io.h \
   cpp-ethereum/libethash/ethash.h \
   cpp-ethereum/libethash/internal.h \
-  cpp-ethereum/libethash/mmap_win32.c \
   cpp-ethereum/utils/json_spirit/JsonSpiritHeaders.h \
   cpp-ethereum/utils/json_spirit/json_spirit.h \
   cpp-ethereum/utils/json_spirit/json_spirit_error_position.h \
@@ -584,6 +593,7 @@ libbitcoin_common_a_SOURCES = \
 if TARGET_WINDOWS
     libbitcoin_common_a_SOURCES += \
       cpp-ethereum/libethash/io_win32.c \
+      cpp-ethereum/libethash/mmap_win32.c \
       cpp-ethereum/libethash/util_win32.c
 else
     libbitcoin_common_a_SOURCES += cpp-ethereum/libethash/io_posix.c
@@ -657,7 +667,7 @@ gex_cli_SOURCES = gex-cli.cpp
 gex_cli_CPPFLAGS = $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
 
 if TARGET_WINDOWS
-gex_cli_SOURCES += gex-cli-res.rc
+gex_cli_SOURCES += gex-cli-res.rc config/gex-config.h
 endif
 
 gex_cli_LDADD = \

@@ -89,8 +89,14 @@ ResultExecute GexState::execute(EnvInfo const& _envInfo, SealEngineFace const& _
         printfErrorLog(dev::eth::toTransactionException(_e));
         res.excepted = dev::eth::toTransactionException(_e);
         res.gasUsed = _t.gas();
-        m_cache.clear();
-        cacheUTXO.clear();
+
+        if (_p != Permanence::Reverted) {
+            deleteAccounts(_sealEngine.deleteAddresses);
+            commit(CommitBehaviour::RemoveEmptyAccounts);
+        } else {
+            m_cache.clear();
+            cacheUTXO.clear();
+        }
     }
 
     if(!_t.isCreation())
@@ -219,7 +225,7 @@ void GexState::addBalance(dev::Address const& _id, dev::u256 const& _amount)
         m_changeLog.emplace_back(dev::eth::detail::Change::Balance, _id, _amount);
 }
 
-dev::Address GexState::createGexAddress(dev::h256 hashTx, uint32_t voutNumber){
+const dev::Address GexState::createGexAddress(dev::h256 hashTx, uint32_t voutNumber){
     uint256 hashTXid(h256Touint(hashTx));
 	std::vector<unsigned char> txIdAndVout(hashTXid.begin(), hashTXid.end());
 	std::vector<unsigned char> voutNumberChrs;
@@ -380,4 +386,56 @@ std::vector<CTxOut> CondensingTX::createVout(){
 bool CondensingTX::checkDeleteAddress(dev::Address addr){
     return deleteAddresses.count(addr) != 0;
 }
+
+/**
+ * Read globalState root/utxo hashes, with a fallback to prev block one
+ */
+dev::h256 getGlobalStateRoot(CBlockIndex* pIndex){
+    dev::h256 root;
+    try {
+        if (globalState != nullptr) {
+            root = dev::h256(globalState->rootHash());
+        } else {
+            root = dev::sha3(dev::rlp(""));
+        }
+    } catch (std::exception& e) {
+        // When root node is empty, it will throw exception. We must re-initialize value
+        if (pIndex && pIndex->pprev->hashStateRoot != uint256() && pIndex->pprev->hashUTXORoot != uint256()) {
+            root = uintToh256(pIndex->pprev->hashStateRoot);
+        } else {
+            root = dev::sha3(dev::rlp(""));
+        }
+    }
+    return root;
+}
+
+dev::h256 getGlobalStateUTXO(CBlockIndex* pIndex){
+    dev::h256 root;
+    try {
+        if (globalState != nullptr) {
+            root = dev::h256(globalState->rootHashUTXO());
+        } else {
+            root = dev::sha3(dev::rlp(""));
+        }
+    } catch (std::exception& e) {
+        // When root node is empty, it will throw exception. We must re-initialize value
+        if (pIndex && pIndex->pprev->hashStateRoot != uint256() && pIndex->pprev->hashUTXORoot != uint256()) {
+            root = uintToh256(pIndex->pprev->hashUTXORoot);
+        } else {
+            root = dev::sha3(dev::rlp(""));
+        }
+    }
+    return root;
+}
+
+void setGlobalStateRoot(dev::h256 root){
+    if (globalState != nullptr)
+        globalState->setRoot(root);
+}
+
+void setGlobalStateUTXO(dev::h256 root){
+    if (globalState != nullptr)
+        globalState->setRootUTXO(root);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////

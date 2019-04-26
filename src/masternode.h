@@ -1,6 +1,7 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto             -*- c++ -*-
-// Copyright (c) 2009-2012 The Darkcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2012-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef MASTERNODE_H
 #define MASTERNODE_H
@@ -37,6 +38,7 @@ class uint256;
 #define MASTERNODE_PING_WAIT_SECONDS           (5*60)
 #define MASTERNODE_EXPIRATION_SECONDS          (65*60) //Old 65*60
 #define MASTERNODE_REMOVAL_SECONDS             (70*60) //Old 70*60
+#define MASTERNODE_CHECK_SECONDS               60
 
 using namespace std;
 
@@ -57,7 +59,7 @@ int CountMasternodesAboveProtocol(int protocolVersion);
 void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, bool &isMasternodeCommand);
 
 //
-// The Masternode Class. For managing the darksend process. It contains the input of the 1000Gex, signature to prove
+// The Masternode Class. For managing the darksend process. It contains the input of the 5000Gex, signature to prove
 // it's the one who own that ip address and code for calculating the payment election.
 //
 class CMasterNode
@@ -76,6 +78,7 @@ public:
     std::vector<unsigned char> sig;
     int64_t now; //dsee message times
     int64_t lastDseep;
+    int64_t lastTimeChecked;
     int cacheInputAge;
     int cacheInputAgeBlock;
     int enabled;
@@ -102,6 +105,7 @@ public:
         lastDseep = 0;
         allowFreeTx = true;
         protocolVersion = protocolVersionIn;
+        lastTimeChecked = GetTime() + GetRand(60); // set random check time
     }
 
     uint256 CalculateScore(int mod=1, int64_t nBlockHeight=0);
@@ -122,7 +126,7 @@ public:
         return n;
     }
 
-    void Check();
+    void Check(bool forceCheck = false);
 
     bool UpdatedWithin(int seconds)
     {

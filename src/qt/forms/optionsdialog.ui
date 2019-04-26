@@ -45,6 +45,20 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="txIndex">
+         <property name="text">
+          <string>Enable &amp;transaction indexes</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="addressIndex">
+         <property name="text">
+          <string>Enable &amp;address indexes</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2_Main">
          <item>
           <widget class="QLabel" name="databaseCacheLabel">
@@ -172,9 +186,6 @@
         <layout class="QHBoxLayout" name="horizontalLayout_4_Main">
          <item>
           <widget class="QLabel" name="label">
-           <property name="visible">
-            <bool>false</bool>
-           </property>
            <property name="toolTip">
             <string>This setting determines the amount of individual masternodes that an input will be anonymized through.&lt;br/&gt;More rounds of anonymization gives a higher degree of privacy, but also costs more in fees.</string>
            </property>
@@ -185,9 +196,6 @@
          </item>
          <item>
           <widget class="QSpinBox" name="darksendRounds">
-           <property name="visible">
-            <bool>false</bool>
-           </property>
            <property name="minimum">
             <number>2</number>
            </property>
@@ -290,6 +298,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="showAdvancedUI">
+            <property name="toolTip">
+             <string>Show additional information and buttons for Darksend on overview screen.</string>
+            </property>
+            <property name="text">
+             <string>Enable advanced Gexsend interface</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="spendZeroConfChange">
             <property name="toolTip">
              <string>If you disable the spending of unconfirmed change, the change from a transaction&lt;br/&gt;cannot be used until that transaction has at least one confirmation.&lt;br/&gt;This also affects how your balance is computed.</string>
@@ -300,10 +318,17 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="parallelMasterNode">
-           <property name="visible">
-            <bool>false</bool>
-           </property>
+           <widget class="QCheckBox" name="checkUpdates">
+            <property name="text">
+             <string>Check for &amp;updates</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="parallelMasternodes">
+            <property name="toolTip">
+             <string>Coming soon</string>
+            </property>
             <property name="text">
              <string>&amp;Activate Parallel Masternode</string>
             </property>
@@ -503,6 +528,16 @@
        <string>&amp;Window</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_Window">
+       <item>
+        <widget class="QCheckBox" name="hideTrayIcon">
+         <property name="toolTip">
+          <string>&amp;Hide the icon from the system tray.</string>
+         </property>
+         <property name="text">
+          <string>Hide tray icon</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QCheckBox" name="minimizeToTray">
          <property name="toolTip">

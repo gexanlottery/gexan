@@ -1,8 +1,8 @@
-// Copyright (c) 2015 The Gex developers
-// Copyright (c) 2009-2012 The Darkcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2012-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 
 //#include "bignum.h"
 #include "sync.h"
@@ -27,10 +27,8 @@ std::map<uint256, CSporkMessage> mapSporks;
 std::map<int, CSporkMessage> mapSporksActive;
 CSporkManager sporkManager;
 
-void ProcessSpork(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, bool& isSporkCommand) {
-    if (strCommand == "spork") {
-        isSporkCommand = true;
-
+void ProcessSpork(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv) {
+    if (strCommand == "spork"){
         CDataStream vMsg(vRecv);
         CSporkMessage spork;
         vRecv >> spork;
@@ -63,9 +61,7 @@ void ProcessSpork(CNode* pfrom, const std::string& strCommand, CDataStream& vRec
         //does a task if needed
         ExecuteSpork(spork.nSporkID, spork.nValue);
     }
-
     else if (strCommand == "getsporks") {
-        isSporkCommand = true;
 
         std::map<int, CSporkMessage>::iterator it = mapSporksActive.begin();
         while (it != mapSporksActive.end()) {
@@ -96,8 +92,8 @@ bool IsSporkActive(int nSporkID) {
 }
 
 // grab the value of the spork on the network, or the default
-int GetSporkValue(int nSporkID) {
-    int r = 0;
+int64_t GetSporkValue(int nSporkID) {
+    int64_t r = 0;
     if (mapSporksActive.count(nSporkID)) {
         r = mapSporksActive[nSporkID].nValue;
     } else {
@@ -208,14 +204,7 @@ bool CSporkManager::UpdateSpork(int nSporkID, int64_t nValue) {
 
 void CSporkManager::Relay(CSporkMessage& msg) {
     CInv inv(MSG_SPORK, msg.GetHash());
-
-    vector <CInv> vInv;
-    vInv.push_back(inv);
-    LOCK(cs_vNodes);
-    for (CNode* pnode : vNodes) {
-        if (pnode)
-            pnode->PushMessage("inv", vInv);
-    }
+    RelayInv(inv);
 }
 
 bool CSporkManager::SetPrivKey(std::string strPrivKey) {

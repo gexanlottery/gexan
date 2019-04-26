@@ -17,8 +17,10 @@
 #include "optionsmodel.h"
 #include "transactionfilterproxy.h"
 #include "transactiontablemodel.h"
+#include "utilitydialog.h"
 #include "walletmodel.h"
 #include "tokenitemmodel.h"
+#include "platformstyle.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
@@ -28,10 +30,14 @@
 #include <QStandardItemModel>
 #include <QSortFilterProxyModel>
 
+#include <QMessageBox>
+#include <QPixmap>
+
 #define DECORATION_SIZE 48
 #define ICON_OFFSET 16
-#define NUM_ITEMS 8
-#define TOKEN_SIZE 24
+#define NUM_ITEMS 5
+#define TOKEN_NUM_ITEMS 3
+#define TOKEN_SIZE 35
 #define MARGIN 4
 #define NAME_WIDTH 250 /* to align with txs history amounts */
 
@@ -39,8 +45,9 @@ class TxViewDelegate : public QAbstractItemDelegate
 {
     Q_OBJECT
 public:
-    TxViewDelegate() : QAbstractItemDelegate(), unit(BitcoinUnits::GEX)
-    {
+    TxViewDelegate(const PlatformStyle *platformStyle):
+            QAbstractItemDelegate(), unit(BitcoinUnits::GEX),
+            platformStyle(platformStyle)    {
     }
 
     inline void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -56,6 +63,7 @@ public:
         int halfheight = (mainRect.height() - 2 * ypad) / 2;
         QRect amountRect(mainRect.left() + xspace, mainRect.top() + ypad, mainRect.width() - xspace - ICON_OFFSET, halfheight);
         QRect addressRect(mainRect.left() + xspace, mainRect.top() + ypad + halfheight, mainRect.width() - xspace, halfheight);
+        icon = platformStyle->SingleColorIcon(icon);
         icon.paint(painter, decorationRect);
 
         QDateTime date = index.data(TransactionTableModel::DateRole).toDateTime();
@@ -63,7 +71,7 @@ public:
         qint64 amount = index.data(TransactionTableModel::AmountRole).toLongLong();
         bool confirmed = index.data(TransactionTableModel::ConfirmedRole).toBool();
         QVariant value = index.data(Qt::ForegroundRole);
-        QColor foreground = COLOR_BAREADDRESS;
+        QColor foreground = COLOR_BLACK;
         if (value.canConvert<QBrush>()) {
             QBrush brush = qvariant_cast<QBrush>(value);
             foreground = brush.color();
@@ -92,8 +100,8 @@ public:
             amountText = QString("[") + amountText + QString("]");
         }
         painter->drawText(amountRect, Qt::AlignRight | Qt::AlignVCenter, amountText);
-	
-        painter->setPen(COLOR_DATE);
+
+        painter->setPen(COLOR_BLACK);
         painter->drawText(amountRect, Qt::AlignLeft | Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
 
         painter->restore();
@@ -105,6 +113,7 @@ public:
     }
 
     int unit;
+    const PlatformStyle* platformStyle;
 };
 
 class TknViewDelegate : public QAbstractItemDelegate
@@ -117,6 +126,8 @@ public:
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
                const QModelIndex &index) const
     {
+        if(index.row() >=TOKEN_NUM_ITEMS)
+            return;
         painter->save();
 
         QIcon tokenIcon/*(":/icons/token")*/;
@@ -159,7 +170,8 @@ public:
         //addressFont.setPixelSize(addressFont.pixelSize() * 0.9);
         painter->setFont(addressFont);
         painter->setPen(COLOR_UNCONFIRMED);
-        QRect receiveAddressRect(decorationRect.right() + MARGIN, decorationSize, mainRect.width() - decorationSize, decorationSize * 2);
+        QRect receiveAddressRect(decorationRect.right() + MARGIN, decorationSize +mainRect.top()
+                                 , mainRect.width() - decorationSize, decorationSize * 2);
         painter->drawText(receiveAddressRect, Qt::AlignLeft|Qt::AlignBottom, receiveAddress);
 
         painter->restore();
@@ -182,7 +194,7 @@ public:
 
 #include "overviewpage.moc"
 
-OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
+OverviewPage::OverviewPage(const PlatformStyle *platformStyle, QWidget* parent) : QWidget(parent),
                                               ui(new Ui::OverviewPage),
                                               clientModel(0),
                                               walletModel(0),
@@ -192,12 +204,16 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
                                               currentWatchOnlyBalance(-1),
                                               currentWatchUnconfBalance(-1),
                                               currentWatchImmatureBalance(-1),
-                                          txdelegate(new TxViewDelegate()),
+                                              txdelegate(new TxViewDelegate(platformStyle)),
                                               tkndelegate(new TknViewDelegate(this)),
                                               filter(0)
 {
     nDisplayUnit = 0; // just make sure it's not unitialized
     ui->setupUi(this);
+    //set Logo
+    ui->labelLogo->setPixmap(QPixmap(":/images/gex_logo_horizontal")
+                             .scaled(410,80,Qt::KeepAspectRatio,
+                                     Qt::SmoothTransformation));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
@@ -207,39 +223,19 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
 
-    ui->listTokens->setItemDelegate(tkndelegate);
-    ui->listTokens->setIconSize(QSize(DECORATION_SIZE, DECORATION_SIZE));
-    //ui->listTokens->setMinimumHeight(NUM_ITEMS * (DECORATION_SIZE + 2));
-    ui->listTokens->setAttribute(Qt::WA_MacShowFocusRect, false);
-    ui->listTokens->setVisible(false);
     // init "out of sync" warning labels
     ui->labelWalletStatus->setText("(" + tr("out of sync") + ")");
-    ui->labelDarksendSyncStatus->setText("(" + tr("out of sync") + ")");
     ui->labelTransactionsStatus->setText("(" + tr("out of sync") + ")");
-    ui->frameDarksend->setVisible(false);
 #if 0
     if (!fLiteMode) {
         ui->frameDarksend->setVisible(false);
     }
 #else
-       {
-        if (fMasterNode) {
-            ui->toggleDarksend->setText("(" + tr("Disabled") + ")");
-            ui->darksendAuto->setText("(" + tr("Disabled") + ")");
-            ui->darksendReset->setText("(" + tr("Disabled") + ")");
-            ui->frameDarksend->setEnabled(false);
-        } else {
-            if (!fEnableDarksend) {
-                ui->toggleDarksend->setText(tr("Start Gexsend"));
-            } else {
-                ui->toggleDarksend->setText(tr("Stop Gexsend"));
-            }
-            timer = new QTimer(this);
-            connect(timer, SIGNAL(timeout()), this, SLOT(darksendStatus()));
-            timer->start(1000);
-        }
-    }
+
 #endif
+
+    if (this->walletModel)
+        updateAdvancedUI(this->walletModel->getOptionsModel()->getShowAdvancedUI());
 
     // start with displaying the "out of sync" warnings
     showOutOfSyncWarning(true);
@@ -248,7 +244,18 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
 void OverviewPage::handleTransactionClicked(const QModelIndex& index)
 {
     if (filter)
-        emit transactionClicked(filter->mapToSource(index));
+        Q_EMIT transactionClicked(filter->mapToSource(index));
+}
+
+void OverviewPage::handleTokenClicked(const QModelIndex& index)
+{
+    if (tokenProxyModel)
+        emit tokenClicked(tokenProxyModel->mapToSource(index));
+}
+
+void OverviewPage::handleOutOfSyncWarningClicks()
+{
+    Q_EMIT outOfSyncWarningClicked();
 }
 
 OverviewPage::~OverviewPage()
@@ -270,7 +277,6 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, balance, false, BitcoinUnits::separatorAlways));
     ui->labelUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
     ui->labelImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelAnonymized->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, anonymizedBalance, false, BitcoinUnits::separatorAlways));
     ui->labelTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, balance + unconfirmedBalance + immatureBalance, false, BitcoinUnits::separatorAlways));
 
 
@@ -289,7 +295,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
 
-    updateDarksendProgress();
+    updateDarkSendProgress();
 
     static int cachedTxLocks = 0;
 
@@ -351,10 +357,9 @@ void OverviewPage::setWalletModel(WalletModel* model)
         connect(model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+        connect(model->getOptionsModel(), SIGNAL(advancedUIChanged(bool)), this, SLOT(updateAdvancedUI(bool)));
+        updateAdvancedUI(model->getOptionsModel()->getShowAdvancedUI());
 
-        connect(ui->darksendAuto, SIGNAL(clicked()), this, SLOT(darksendAuto()));
-        connect(ui->darksendReset, SIGNAL(clicked()), this, SLOT(darksendReset()));
-        connect(ui->toggleDarksend, SIGNAL(clicked()), this, SLOT(toggleDarksend()));
         updateWatchOnlyLabels(model->haveWatchOnly());
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
     }
@@ -362,13 +367,10 @@ void OverviewPage::setWalletModel(WalletModel* model)
     if(model && model->getTokenItemModel())
     {
         // Sort tokens by name
-        QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
+        tokenProxyModel = new QSortFilterProxyModel(this);
         TokenItemModel* tokenModel = model->getTokenItemModel();
-        proxyModel->setSourceModel(tokenModel);
-        proxyModel->sort(0, Qt::AscendingOrder);
-
-        // Set tokens model
-        ui->listTokens->setModel(proxyModel);
+        tokenProxyModel->setSourceModel(tokenModel);
+        tokenProxyModel->sort(0, Qt::AscendingOrder);
     }
 
     // update the display unit, to not use the default ("GEX")
@@ -399,16 +401,15 @@ void OverviewPage::updateAlerts(const QString& warnings)
 void OverviewPage::showOutOfSyncWarning(bool fShow)
 {
     ui->labelWalletStatus->setVisible(fShow);
-    ui->labelDarksendSyncStatus->setVisible(fShow);
     ui->labelTransactionsStatus->setVisible(fShow);
 }
 
-/*void OverviewPage::on_buttonAddToken_clicked()
+void OverviewPage::on_buttonAddToken_clicked()
 {
     Q_EMIT addTokenClicked(true);
-}*/
+}
 
-void OverviewPage::updateDarksendProgress()
+void OverviewPage::updateDarkSendProgress()
 {
     if (!pwalletMain) return;
 
@@ -416,232 +417,15 @@ void OverviewPage::updateDarksendProgress()
     QString strAnonymizeGexAmount = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nAnonymizeGexAmount * COIN, false, BitcoinUnits::separatorAlways);
 
     if (currentBalance == 0) {
-        ui->darksendProgress->setValue(0);
-        ui->darksendProgress->setToolTip(tr("No inputs detected"));
 
         // when balance is zero just show info from settings
-        strAnonymizeGexAmount = strAnonymizeGexAmount.remove(strAnonymizeGexAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = strAnonymizeGexAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
-
-        ui->labelAmountRounds->setToolTip(tr("No inputs detected"));
-        ui->labelAmountRounds->setText(strAmountAndRounds);
-        return;
-    }
-
-    CAmount nDenominatedConfirmedBalance;
-    CAmount nDenominatedUnconfirmedBalance;
-    CAmount nAnonymizableBalance;
-    CAmount nNormalizedAnonymizedBalance;
-    double nAverageAnonymizedRounds;
-
-    {
-        TRY_LOCK(cs_main, lockMain);
-        if (!lockMain) return;
-
-        nDenominatedConfirmedBalance = pwalletMain->GetDenominatedBalance(false);
-        nDenominatedUnconfirmedBalance = pwalletMain->GetDenominatedBalance(true, false);
-        nAnonymizableBalance = pwalletMain->GetAnonymizableBalance();
-        nNormalizedAnonymizedBalance = pwalletMain->GetNormalizedAnonymizedBalance();
-        nAverageAnonymizedRounds = pwalletMain->GetAverageAnonymizedRounds();
-    }
-
-    CAmount nMaxToAnonymize = nAnonymizableBalance + currentAnonymizedBalance + nDenominatedUnconfirmedBalance;
-
-    // If it's more than the anon threshold, limit to that.
-    if (nMaxToAnonymize > nAnonymizeGexAmount * COIN) nMaxToAnonymize = nAnonymizeGexAmount * COIN;
-
-    if (nMaxToAnonymize == 0) return;
-
-    if (nMaxToAnonymize >= nAnonymizeGexAmount * COIN) {
-        ui->labelAmountRounds->setToolTip(tr("Found enough compatible inputs to anonymize %1")
-                                              .arg(strAnonymizeGexAmount));
-        strAnonymizeGexAmount = strAnonymizeGexAmount.remove(strAnonymizeGexAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = strAnonymizeGexAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
-    } else {
-        QString strMaxToAnonymize = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nMaxToAnonymize, false, BitcoinUnits::separatorAlways);
-        ui->labelAmountRounds->setToolTip(tr("Not enough compatible inputs to anonymize <span style='color:red;'>%1</span>,<br>"
-                                             "will anonymize <span style='color:red;'>%2</span> instead")
-                                              .arg(strAnonymizeGexAmount)
-                                              .arg(strMaxToAnonymize));
-        strMaxToAnonymize = strMaxToAnonymize.remove(strMaxToAnonymize.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = "<span style='color:red;'>" +
-                             QString(BitcoinUnits::factor(nDisplayUnit) == 1 ? "" : "~") + strMaxToAnonymize +
-                             " / " + tr("%n Rounds", "", nDarksendRounds) + "</span>";
-    }
-    ui->labelAmountRounds->setText(strAmountAndRounds);
-
-    // calculate parts of the progress, each of them shouldn't be higher than 1
-    // progress of denominating
-    float denomPart = 0;
-    // mixing progress of denominated balance
-    float anonNormPart = 0;
-    // completeness of full amount anonimization
-    float anonFullPart = 0;
-
-    CAmount denominatedBalance = nDenominatedConfirmedBalance + nDenominatedUnconfirmedBalance;
-    denomPart = (float)denominatedBalance / nMaxToAnonymize;
-    denomPart = denomPart > 1 ? 1 : denomPart;
-    denomPart *= 100;
-
-    anonNormPart = (float)nNormalizedAnonymizedBalance / nMaxToAnonymize;
-    anonNormPart = anonNormPart > 1 ? 1 : anonNormPart;
-    anonNormPart *= 100;
-
-    anonFullPart = (float)currentAnonymizedBalance / nMaxToAnonymize;
-    anonFullPart = anonFullPart > 1 ? 1 : anonFullPart;
-    anonFullPart *= 100;
-
-    // apply some weights to them ...
-    float denomWeight = 1;
-    float anonNormWeight = nDarksendRounds;
-    float anonFullWeight = 2;
-    float fullWeight = denomWeight + anonNormWeight + anonFullWeight;
-    // ... and calculate the whole progress
-    float denomPartCalc = ceilf((denomPart * denomWeight / fullWeight) * 100) / 100;
-    float anonNormPartCalc = ceilf((anonNormPart * anonNormWeight / fullWeight) * 100) / 100;
-    float anonFullPartCalc = ceilf((anonFullPart * anonFullWeight / fullWeight) * 100) / 100;
-    float progress = denomPartCalc + anonNormPartCalc + anonFullPartCalc;
-    if (progress >= 100) progress = 100;
-
-    ui->darksendProgress->setValue(progress);
-
-    QString strToolPip = ("<b>" + tr("Overall progress") + ": %1%</b><br/>" +
-                          tr("Denominated") + ": %2%<br/>" +
-                          tr("Mixed") + ": %3%<br/>" +
-                          tr("Anonymized") + ": %4%<br/>" +
-                          tr("Denominated inputs have %5 of %n rounds on average", "", nDarksendRounds))
-                             .arg(progress)
-                             .arg(denomPart)
-                             .arg(anonNormPart)
-                             .arg(anonFullPart)
-                             .arg(nAverageAnonymizedRounds);
-    ui->darksendProgress->setToolTip(strToolPip);
-}
-
-void OverviewPage::darksendStatus()
-{
-    static int64_t nLastDSProgressBlockTime = 0;
-
-    int nBestHeight = chainActive.Height();
-
-    // we we're processing more then 1 block per second, we'll just leave
-    if (((nBestHeight - darkSendPool.cachedNumBlocks) / (GetTimeMillis() - nLastDSProgressBlockTime + 1) > 1)) return;
-    nLastDSProgressBlockTime = GetTimeMillis();
-
-    if (!fEnableDarksend) {
-        if (nBestHeight != darkSendPool.cachedNumBlocks) {
-            darkSendPool.cachedNumBlocks = nBestHeight;
-            updateDarksendProgress();
-
-            ui->darksendEnabled->setText(tr("Disabled"));
-            ui->darksendStatus->setText("");
-            ui->toggleDarksend->setText(tr("Start Gexsend"));
-        }
 
         return;
     }
 
-    // check darksend status and unlock if needed
-    if (nBestHeight != darkSendPool.cachedNumBlocks) {
-        // Balance and number of transactions might have changed
-        darkSendPool.cachedNumBlocks = nBestHeight;
-        updateDarksendProgress();
 
-        ui->darksendEnabled->setText(tr("Enabled"));
-    }
-
-    QString strStatus = QString(darkSendPool.GetState());
-
-    QString s = tr("Last Darksend message:\n") + strStatus;
-
-    if (s != ui->darksendStatus->text())
-        LogPrintf("Last Darksend message: %s\n", strStatus.toStdString());
-
-    ui->darksendStatus->setText(s);
-
-    if (darkSendPool.sessionDenom == 0) {
-        ui->labelSubmittedDenom->setText(tr("N/A"));
-    } else {
-        std::string out;
-        darkSendPool.GetDenominationsToString(darkSendPool.sessionDenom, out);
-        QString s2(out.c_str());
-        ui->labelSubmittedDenom->setText(s2);
-    }
 
 }
 
-void OverviewPage::darksendAuto()
-{
-
-    darkSendPool.DoAutomaticDenominating();
-
-}
-
-void OverviewPage::darksendReset()
-{
-
-    darkSendPool.Reset();
-
-    QMessageBox::warning(this, tr("Darksend"),
-        tr("Darksend was successfully reset."),
-        QMessageBox::Ok, QMessageBox::Ok);
-
-}
-
-void OverviewPage::toggleDarksend()
-{
-
-    QSettings settings;
-    // Popup some information on first mixing
-    QString hasMixed = settings.value("hasMixed").toString();
-    if (hasMixed.isEmpty()) {
-        QMessageBox::information(this, tr("Darksend"),
-            tr("If you don't want to see internal Darksend fees/transactions select \"Most Common\" as Type on the \"Transactions\" tab."),
-            QMessageBox::Ok, QMessageBox::Ok);
-        settings.setValue("hasMixed", "hasMixed");
-    }
-    if (!fEnableDarksend) {
-        int64_t balance = currentBalance;
-        float minAmount = 14.90 * COIN;
-        if (balance < minAmount) {
-            QString strMinAmount(BitcoinUnits::formatWithUnit(nDisplayUnit, minAmount));
-            QMessageBox::warning(this, tr("Darksend"),
-                tr("Darksend requires at least %1 to use.").arg(strMinAmount),
-                QMessageBox::Ok, QMessageBox::Ok);
-            return;
-        }
-
-        // if wallet is locked, ask for a passphrase
-        if (walletModel->getEncryptionStatus() == WalletModel::Locked) {
-            WalletModel::UnlockContext ctx(walletModel->requestUnlock(false));
-            if (!ctx.isValid()) {
-                //unlock was cancelled
-                darkSendPool.cachedNumBlocks = std::numeric_limits<int>::max();
-                QMessageBox::warning(this, tr("Darksend"),
-                    tr("Wallet is locked and user declined to unlock. Disabling Darksend."),
-                    QMessageBox::Ok, QMessageBox::Ok);
-                if (fDebug) LogPrintf("Wallet is locked and user declined to unlock. Disabling Darksend.\n");
-                return;
-            }
-        }
-    }
-
-    fEnableDarksend = !fEnableDarksend;
-    darkSendPool.cachedNumBlocks = std::numeric_limits<int>::max();
-
-    if (!fEnableDarksend) {
-        ui->toggleDarksend->setText(tr("Start Gexsend"));
-        darkSendPool.UnlockCoins();
-    } else {
-        ui->toggleDarksend->setText(tr("Stop Gexsend"));
-
-        /* show darksend configuration if client has defaults set */
-
-        if (nAnonymizeGexAmount == 0) {
-            DarksendConfig dlg(this);
-            dlg.setModel(walletModel);
-            dlg.exec();
-        }
-    }
-
+void OverviewPage::updateAdvancedUI(bool fShowAdvancedPSUI) {
 }

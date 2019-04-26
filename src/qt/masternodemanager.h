@@ -2,6 +2,7 @@
 #ifndef MASTERNODEMANAGER_H
 #define MASTERNODEMANAGER_H
 
+#include "optionsmodel.h"
 #include "util.h"
 #include "sync.h"
 
@@ -16,6 +17,7 @@ namespace Ui {
     class MasternodeManager;
 }
 class ClientModel;
+class OptionsModel;
 class WalletModel;
 
 QT_BEGIN_NAMESPACE
@@ -37,33 +39,36 @@ public:
 
 public slots:
     void updateNodeList();
+    void updateMYNodeList();
     void updateGexNode(QString alias, QString addr, QString privkey, QString collateral);
-    
-signals:
+        
+Q_SIGNALS:
 
 private:
     QTimer *timer;
+    QTimer *timer2;
     Ui::MasternodeManager *ui;
     ClientModel *clientModel;
     WalletModel *walletModel;
     CCriticalSection cs_adrenaline;
     int64_t nTimeFilterUpdated;
-	bool fFilterUpdated;
-	QFuture<void> f1;
+    bool fFilterUpdated;
+    QFuture<void> f1;
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
    
 private slots:
-   // void on_copyAddressButton_clicked();
-   // void on_createButton_clicked();
-    //void on_editButton_clicked();
-   // void on_getConfigButton_clicked();
-    //void on_startButton_clicked();
-   // void on_stopButton_clicked();
-    //void on_startAllButton_clicked();
-   // void on_stopAllButton_clicked();
-   // void on_removeButton_clicked();
-   // void on_tableWidget_2_itemSelectionChanged();
+    void setPMNsVisible(bool);
+    //void on_copyAddressButton_clicked();
+    void on_createButton_clicked();
+    void on_editButton_clicked();
+    void on_getConfigButton_clicked();
+    void on_startButton_clicked();
+    void on_stopButton_clicked();
+    void on_startAllButton_clicked();
+    void on_stopAllButton_clicked();
+    void on_removeButton_clicked();
+    void on_tableWidget_2_itemSelectionChanged();
 };
 
 #endif // MASTERNODEMANAGER_H

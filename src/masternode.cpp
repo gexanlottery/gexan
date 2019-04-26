@@ -1,3 +1,9 @@
+// Copyright (c) 2012-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "masternode.h"
 #include "activemasternode.h"
 #include "consensus/validation.h"
@@ -9,7 +15,7 @@
 #include <boost/lexical_cast.hpp>
 //tt
 
-int CMasterNode::minProtoVersion = MIN_MN_PROTO_VERSION;
+int CMasterNode::minProtoVersion = MIN_PROTO_VERSION;
 
 CCriticalSection cs_masternodes;
 
@@ -81,7 +87,7 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
 
         strMessage = addr.ToString() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion);
 
-        if (protocolVersion < MIN_MN_PROTO_VERSION) {
+        if (protocolVersion < MIN_PROTO_VERSION) {
             LogPrintf("dsee - ignoring outdated masternode %s protocol version %d\n", vin.ToString().c_str(), protocolVersion);
             return;
         }
@@ -160,8 +166,13 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         //if(AcceptableInputs(mempool, state, tx)){
-        bool pfMissingInputs;
-        if (AcceptableInputs(mempool, state, CTransaction(tx), false, &pfMissingInputs)) {
+        bool inputsAcceptable;
+        {
+            LOCK(cs_main);
+            bool pfMissingInputs;
+            inputsAcceptable = AcceptableInputs(mempool, state, CTransaction(tx), false, &pfMissingInputs);
+        }
+        if (inputsAcceptable) {
             if (fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
             if (GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS) {
@@ -573,7 +584,9 @@ uint256 CMasterNode::CalculateScore(int mod, int64_t nBlockHeight) {
     return r;
 }
 
-void CMasterNode::Check() {
+void CMasterNode::Check(bool forceCheck) {
+    if(!forceCheck && (GetTime() - lastTimeChecked < MASTERNODE_CHECK_SECONDS)) return;
+    lastTimeChecked = GetTime();
     //once spent, stop doing the checks
     if (enabled == 3) return;
 
@@ -593,11 +606,18 @@ void CMasterNode::Check() {
         CTxOut vout = CTxOut((GetMNCollateral(chainActive.Height()) - 1) * COIN, darkSendPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
-
         bool pfMissingInputs;
+        {
+            LOCK(cs_main);
+        /*
+        cs_main is required for doing masternode.Check because something
+        is modifying the coins view without a mempool lock. It causes
+        segfaults from this code without the cs_main lock.
+        */
         if (!AcceptableInputs(mempool, state, CTransaction(tx), false, &pfMissingInputs)) {
             enabled = 3;
             return;
+            }
         }
     }
 

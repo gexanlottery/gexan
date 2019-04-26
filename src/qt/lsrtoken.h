@@ -1,5 +1,5 @@
-#ifndef LSRTOKEN_H
-#define LSRTOKEN_H
+#ifndef GSRTOKEN_H
+#define GSRTOKEN_H
 
 #include "sendtokenpage.h"
 #include "receivetokenpage.h"
@@ -14,18 +14,19 @@ class WalletModel;
 class ClientModel;
 class TokenTransactionView;
 class QMenu;
+class QSortFilterProxyModel;
 
 namespace Ui {
-class LSRToken;
+class GSRToken;
 }
 
-class LSRToken : public QWidget
+class GSRToken : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit LSRToken(QWidget *parent = 0);
-    ~LSRToken();
+    explicit GSRToken(QWidget *parent = 0);
+    ~GSRToken();
 
     void setModel(WalletModel *_model);
     void setClientModel(ClientModel *clientModel);
@@ -46,15 +47,15 @@ public Q_SLOTS:
     void copyTokenName();
     void copySenderAddress();
     void removeToken();
-
+    void focusToken(const QModelIndex& index);
 private:
-    Ui::LSRToken *ui;
+    Ui::GSRToken *ui;
     SendTokenPage* m_sendTokenPage;
     ReceiveTokenPage* m_receiveTokenPage;
     AddTokenPage* m_addTokenPage;
     WalletModel* m_model;
     ClientModel* m_clientModel;
-    QAbstractItemModel* m_tokenModel;
+    QSortFilterProxyModel* m_tokenModel;
     TokenViewDelegate* m_tokenDelegate;
     QAction *m_sendAction;
     QAction *m_receiveAction;
@@ -64,4 +65,4 @@ private:
     QMenu *contextMenu;
 };
 
-#endif // LSRTOKEN_H
+#endif // GSRTOKEN_H

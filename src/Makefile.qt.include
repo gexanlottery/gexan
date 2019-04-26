@@ -20,12 +20,13 @@ QT_TS = \
   qt/locale/gex_en.ts \
   qt/locale/gex_en_US.ts \
   qt/locale/gex_es.ts \
-  qt/locale/gex_fr_FR.ts \
+  qt/locale/gex_fr.ts \
   qt/locale/gex_it.ts \
   qt/locale/gex_ja.ts \
   qt/locale/gex_pt.ts \
   qt/locale/gex_ro_RO.ts \
   qt/locale/gex_ru.ts \
+  qt/locale/gex_vn.ts \
   qt/locale/gex_zh_TW.ts
 
 QT_FORMS_UI = \
@@ -44,6 +45,7 @@ QT_FORMS_UI = \
   qt/forms/editcontractinfodialog.ui \
   qt/forms/helpmessagedialog.ui \
   qt/forms/intro.ui \
+  qt/forms/modaloverlay.ui \
   qt/forms/eula.ui \
   qt/forms/masternodemanager.ui \
   qt/forms/addeditgexnode.ui \
@@ -53,7 +55,6 @@ QT_FORMS_UI = \
   qt/forms/openuridialog.ui \
   qt/forms/optionsdialog.ui \
   qt/forms/overviewpage.ui \
-  qt/forms/tradingdialog.ui \
   qt/forms/receivecoinsdialog.ui \
   qt/forms/receivetokenpage.ui \
   qt/forms/receiverequestdialog.ui \
@@ -71,7 +72,7 @@ QT_FORMS_UI = \
 
 if ENABLE_UPDATER
  QT_FORMS_UI += gex-installer/src/forms/updateinfodialog.ui \
-                gex-installer/src/forms/progressdialog.ui 
+                gex-installer/src/forms/progressdialog.ui
 endif
 
 QT_MOC_CPP = \
@@ -111,6 +112,7 @@ QT_MOC_CPP = \
   qt/moc_eula.cpp \
   qt/moc_macdockiconhandler.cpp \
   qt/moc_macnotificationhandler.cpp \
+  qt/moc_modaloverlay.cpp \
   qt/moc_masternodemanager.cpp \
   qt/moc_addeditgexnode.cpp \
   qt/moc_gexnodeconfigdialog.cpp \
@@ -120,7 +122,6 @@ QT_MOC_CPP = \
   qt/moc_optionsdialog.cpp \
   qt/moc_optionsmodel.cpp \
   qt/moc_overviewpage.cpp \
-  qt/moc_tradingdialog.cpp \
   qt/moc_tokenamountfield.cpp \
   qt/moc_qcustomplot.cpp \
   qt/moc_peertablemodel.cpp \
@@ -157,6 +158,7 @@ QT_MOC_CPP = \
   qt/moc_transactiontablemodel.cpp \
   qt/moc_transactionview.cpp \
   qt/moc_utilitydialog.cpp \
+  qt/moc_updatedialog.cpp \
   qt/moc_walletframe.cpp \
   qt/moc_walletmodel.cpp \
   qt/moc_walletview.cpp \
@@ -237,6 +239,7 @@ BITCOIN_QT_H = \
   qt/eula.h \
   qt/macdockiconhandler.h \
   qt/macnotificationhandler.h \
+  qt/modaloverlay.h \
   qt/masternodemanager.h \
   qt/addeditgexnode.h \
   qt/gexnodeconfigdialog.h \
@@ -247,7 +250,6 @@ BITCOIN_QT_H = \
   qt/optionsdialog.h \
   qt/optionsmodel.h \
   qt/overviewpage.h \
-  qt/tradingdialog.h \
   qt/paymentrequestplus.h \
   qt/paymentserver.h \
   qt/peertablemodel.h \
@@ -258,12 +260,14 @@ BITCOIN_QT_H = \
   qt/qvaluecombobox.h \
   qt/receivecoinsdialog.h \
   qt/receiverequestdialog.h \
+  qt/receivetokenpage.h \
   qt/recentrequeststablemodel.h \
   qt/restoredialog.h \
   qt/rpcconsole.h \
   qt/sendcoinsdialog.h \
   qt/sendcoinsentry.h \
   qt/sendtocontract.h \
+  qt/sendtokenpage.h \
   qt/signverifymessagedialog.h \
   qt/smartcontract.h \
   qt/splashscreen.h \
@@ -286,14 +290,15 @@ BITCOIN_QT_H = \
   qt/transactiontablemodel.h \
   qt/transactionview.h \
   qt/utilitydialog.h \
+  qt/updatedialog.h \
   qt/walletframe.h \
   qt/walletmodel.h \
   qt/walletmodeltransaction.h \
   qt/walletview.h \
   qt/winshutdownmonitor.h \
   qt/qcustomplot.h \
-  qt/hexaddressconverter.h
-
+  qt/hexaddressconverter.h \
+  qt/tokenslistview.h
 if ENABLE_UPDATER
   BITCOIN_QT_H += gex-installer/src/gexupdater/gexupdater.h \
                   gex-installer/src/gexupdater/simplescheduler_p.h \
@@ -308,6 +313,8 @@ endif
 RES_ICONS = \
   qt/res/icons/add.png \
   qt/res/icons/address-book.png \
+  qt/res/icons/auto_backup.png \
+  qt/res/icons/backup.png \
   qt/res/icons/bitcoin.ico \
   qt/res/icons/bitcoin.png \
   qt/res/icons/bitcoin_testnet.ico \
@@ -319,6 +326,7 @@ RES_ICONS = \
   qt/res/icons/clock3.png \
   qt/res/icons/clock4.png \
   qt/res/icons/clock5.png \
+  qt/res/icons/conf.png \
   qt/res/icons/configure.png \
   qt/res/icons/connect0_16.png \
   qt/res/icons/connect1_16.png \
@@ -337,28 +345,37 @@ RES_ICONS = \
   qt/res/icons/filesave.png \
   qt/res/icons/fontbigger.png \
   qt/res/icons/fontsmaller.png \
+  qt/res/icons/hd_disabled.png \
+  qt/res/icons/hd_enabled.png \
+  qt/res/icons/hex.png \
   qt/res/icons/history.png \
   qt/res/icons/key.png \
   qt/res/icons/lock_closed.png \
-  qt/res/icons/update.ico \
-  qt/res/icons/gexupdate-loader.gif \
-  qt/res/icons/lock_open.png \
-  qt/res/icons/masternodes.png \
-  qt/res/icons/overview.png \
-  qt/res/icons/smartcontract.png \
-  qt/res/icons/qrcode.png \
+  qt/res/icons/lock_closed_black.png \
+  qt/res/icons/gexcoin_black.png \
   qt/res/icons/lsrtoken.png \
+  qt/res/icons/lock_open.png \
+  qt/res/icons/gexupdate-loader.gif \
+  qt/res/icons/masternodes.png \
+  qt/res/icons/network_monitor.png \
+  qt/res/icons/options.png \
+  qt/res/icons/overview.png \
+  qt/res/icons/peer.png \
+  qt/res/icons/qrcode.png \
   qt/res/icons/quit.png \
   qt/res/icons/receive.png \
   qt/res/icons/remove.png \
+  qt/res/icons/restore.png \
   qt/res/icons/send.png \
+  qt/res/icons/sign.png \
+  qt/res/icons/smartcontract.png \
   qt/res/icons/staking_active.png \
   qt/res/icons/staking_inactive.png \
   qt/res/icons/synced.png \
   qt/res/icons/stake.png \
-  qt/res/icons/trade.png \
   qt/res/icons/transaction0.png \
   qt/res/icons/transaction2.png \
+  qt/res/icons/transaction_abandoned.png \
   qt/res/icons/transaction_conflicted.png \
   qt/res/icons/tx_inout.png \
   qt/res/icons/tx_input.png \
@@ -369,7 +386,12 @@ RES_ICONS = \
   qt/res/icons/unit_ugex.png \
   qt/res/icons/unit_tgex.png \
   qt/res/icons/unit_tmgex.png \
-  qt/res/icons/unit_tugex.png
+  qt/res/icons/unit_tugex.png \
+  qt/res/icons/update.ico \
+  qt/res/icons/update_black.png \
+  qt/res/icons/verified.png \
+  qt/res/icons/wallet_repair.png \
+  qt/res/icons/warning.png
 
 BITCOIN_QT_CPP = \
   qt/bantablemodel.cpp \
@@ -382,6 +404,7 @@ BITCOIN_QT_CPP = \
   qt/csvmodelwriter.cpp \
   qt/guiutil.cpp \
   qt/intro.cpp \
+  qt/modaloverlay.cpp \
   qt/eula.cpp \
   qt/masternodemanager.cpp \
   qt/addeditgexnode.cpp \
@@ -404,8 +427,10 @@ BITCOIN_QT_CPP = \
   qt/tokenamountfield.cpp \
   qt/trafficgraphwidget.cpp \
   qt/utilitydialog.cpp \
+  qt/updatedialog.cpp \
   qt/winshutdownmonitor.cpp \
-  qt/hexaddressconverter.cpp
+  qt/hexaddressconverter.cpp \
+  qt/tokenslistview.cpp
 
 if ENABLE_WALLET
 BITCOIN_QT_CPP += \
@@ -443,7 +468,6 @@ BITCOIN_QT_CPP += \
   qt/openuridialog.cpp \
   qt/overviewpage.cpp \
   qt/qcustomplot.cpp \
-  qt/tradingdialog.cpp \
   qt/paymentrequestplus.cpp \
   qt/paymentserver.cpp \
   qt/lsrtoken.cpp \
@@ -515,7 +539,9 @@ RES_CSS = \
 
 RES_MOVIES = $(wildcard $(srcdir)/qt/res/movies/spinner-*.png)
 
+if TARGET_WINDOWS
 BITCOIN_RC = qt/res/gex-qt-res.rc
+endif
 
 BITCOIN_QT_INCLUDES = -I$(builddir)/qt -I$(srcdir)/qt -I$(srcdir)/qt/forms \
   -I$(builddir)/qt/forms

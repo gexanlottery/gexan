@@ -11,6 +11,8 @@
 #include <libethereum/Executive.h>
 #include <libethcore/SealEngine.h>
 
+#include "chain.h" // CBlockIndex
+
 using OnOpFunc = std::function<void(uint64_t, uint64_t, dev::eth::Instruction, dev::bigint, dev::bigint, 
     dev::bigint, dev::eth::VM*, dev::eth::ExtVMFace const*)>;
 using plusAndMinus = std::pair<dev::u256, dev::u256>;
@@ -76,7 +78,9 @@ public:
 
     dev::OverlayDB const& dbUtxo() const { return dbUTXO; }
 
-	dev::OverlayDB& dbUtxo() { return dbUTXO; }
+    dev::OverlayDB& dbUtxo() { return dbUTXO; }
+
+    static const dev::Address createGexAddress(dev::h256 hashTx, uint32_t voutNumber);
 
     virtual ~GexState(){}
 
@@ -95,8 +99,6 @@ private:
     void kill(dev::Address _addr);
 
     void addBalance(dev::Address const& _id, dev::u256 const& _amount);
-
-    dev::Address createGexAddress(dev::h256 hashTx, uint32_t voutNumber);
 
     void deleteAccounts(std::set<dev::Address>& addrs);
 
@@ -192,4 +194,12 @@ private:
     bool voutOverflow = false;
 
 };
+///////////////////////////////////////////////////////////////////////////////////////////
+
+dev::h256 getGlobalStateRoot(CBlockIndex* pIndex);
+dev::h256 getGlobalStateUTXO(CBlockIndex* pIndex);
+
+void setGlobalStateRoot(dev::h256 root);
+void setGlobalStateUTXO(dev::h256 root);
+
 ///////////////////////////////////////////////////////////////////////////////////////////

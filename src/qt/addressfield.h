@@ -1,5 +1,6 @@
 // Copyright (c) 2016-2017 The Qtum Core developers
-// Copyright (c) 2018 The Gexan developers
+// Copyright (c) 2018 The Luxcore developers
+// Copyright (c) 2019 The Gexan developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -100,6 +101,7 @@ private:
     QAbstractItemModel* m_addressTableModel;
     int m_addressColumn;
     int m_typeRole;
+    int64_t lastRefreshTime;
     QString m_receive;
 };
 

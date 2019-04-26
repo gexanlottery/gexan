@@ -1,7 +1,9 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The GEX developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Copyright (c) 2018-2019 The GEX developers
+// Copyright (c) 2019 The XDNA Creation Team developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -81,18 +83,17 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 // + Contains no strange transactions
 static Checkpoints::MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-                ( 0,   uint256("0x0000016a02340c579e4c3fc7ebf3698a1a3ed34eed9eb3e9f38d39b9ad3d2897") )
-                ( 1000,   uint256("0x1d27ace689c9d354b32f77cc3726f3a599018c7d0c6f03925c90145eca79a1f0") )
-                ( 2000,   uint256("0xed9226a8e82d69346dad0218d999609eb4308d1c5aa2bd098fd01972c05c4b66") )
+                ( 0,   uint256("0x00000afb1e6ef5ae84337e8487d73eec2282be9d2a994b8c61b3555545436257 ") )
+                (65, uint256("752e5ebfae8f920ff05c6d84887cac8f7adc74e6beb410e69f7d2bc3b532dcbb"))
 
 ;
 
 static const Checkpoints::CCheckpointData data = {
         &mapCheckpoints,
-        1533497346, // * UNIX timestamp of last checkpoint block
-        723458,     // * total number of transactions between genesis and last checkpoint
+        1556300403, // * UNIX timestamp of last checkpoint block
+        68,     // * total number of transactions between genesis and last checkpoint
         //   (the tx=... number in UpdateTip debug.log lines)
-        350058        // * estimated number of transactions per day after checkpoint
+        2000        // * estimated number of transactions per day after checkpoint
 };
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
@@ -134,14 +135,14 @@ public:
         consensus.nMajorityWindow = 1000;
         //consensus.BIP34Height = 227931;
         //consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); 
+        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 30 * 60;
-        consensus.nPowTargetSpacing = 1 * 60;
-        consensus.fPowAllowMinDifficultyBlocks = true;
-        consensus.fPowNoRetargeting = true;
+        consensus.nPowTargetSpacing = 2 * 60;
+        consensus.fPowAllowMinDifficultyBlocks = false;
+        consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1026; // 95% of 1080 is 1026
         consensus.nMinerConfirmationWindow = 1080; // nPowTargetTimespan / nPowTargetSpacing
-        consensus.nLastPOWBlock = 1800;
+        consensus.nLastPOWBlock = 6000000;
         // Deployment of SegWit (BIP141 and BIP143)
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1544639775; // 01/07/2018
@@ -157,10 +158,10 @@ public:
         //TODO: fix cyclic dependency
         consensus.vDeployments[Consensus::SMART_CONTRACTS_HARDFORK].bit = 30;
 
-        nSwitchPhi2Block = 9930000;
-        nFirstSCBlock = 10000;
-        nPruneAfterHeight = 9100000;
-        nSplitRewardBlock = 9100000;
+        nSwitchPhi2Block = 5;
+        nFirstSCBlock = 40;
+        nPruneAfterHeight = 650000;
+        nSplitRewardBlock = 200;
 
 
         /**
@@ -168,7 +169,7 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 4-byte int at any alignment.
          */
-        pchMessageStart[0] = 0x6a;
+        pchMessageStart[0] = 0x61;
         pchMessageStart[1] = 0xb3;
         pchMessageStart[2] = 0xc8;
         pchMessageStart[3] = 0xa9;
@@ -176,14 +177,12 @@ public:
         nDefaultPort = 19666;
         nMaxReorganizationDepth = 100;
         nMinerThreads = 0;
-        nMaturity = 14;
-        nMasternodeCountDrift = 20;
-        nModifierUpdateBlock = 615800;
+        nMaturity = 60;
 
-        const char* pszTimestamp = "Gexan with Parallel Masternode"; // Input Activation code to activate blockchain
+        const char* pszTimestamp = "Gexan 2.0 is started";
         CMutableTransaction txNew;
         txNew.nVersion = 1;
-        txNew.nTime = 1540828194;
+        txNew.nTime = 1555326000;
         txNew.nLockTime = 0;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -194,32 +193,32 @@ public:
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
         genesis.nVersion = 1;
-        genesis.nTime = 1540828194; 
+        genesis.nTime = 1555326000;
         genesis.nBits = 0x1e0fffff;
-        genesis.nNonce = 1238175;
-        genesis.hashStateRoot = uint256(h256Touint(dev::h256("e965ffd002cd6ad0e2dc402b8044de833e06b23127ea8c3d80aec91410771495"))); 
-        genesis.hashUTXORoot = uint256(h256Touint(dev::sha3(dev::rlp("")))); 
-
+        genesis.nNonce = 996384;
+        genesis.hashStateRoot = uint256(h256Touint(dev::h256("e965ffd002cd6ad0e2dc402b8044de833e06b23127ea8c3d80aec91410771495")));
+        genesis.hashUTXORoot = uint256(h256Touint(dev::sha3(dev::rlp(""))));
 
         consensus.hashGenesisBlock = genesis.GetHash();
 
+        assert(consensus.hashGenesisBlock == uint256("0x00000afb1e6ef5ae84337e8487d73eec2282be9d2a994b8c61b3555545436257"));
+        assert(genesis.hashMerkleRoot == uint256("0xd0cbd2568ec50cd0fad137dfb19b8baebbd46e5b1a5cbb7755d74b98324284e4"));
 
+        vSeeds.push_back(CDNSSeedData("seed1", "199.247.2.36"));
+        vSeeds.push_back(CDNSSeedData("seed2", "45.32.126.166"));
+        vSeeds.push_back(CDNSSeedData("seed3", "45.76.33.100"));
+        vSeeds.push_back(CDNSSeedData("seed4", "167.179.64.56"));
+        vSeeds.push_back(CDNSSeedData("seed5", "45.76.181.14"));
+        vSeeds.push_back(CDNSSeedData("seed6", "45.77.205.122"));
 
-        assert(consensus.hashGenesisBlock == uint256("0x0000016a02340c579e4c3fc7ebf3698a1a3ed34eed9eb3e9f38d39b9ad3d2897"));
-        assert(genesis.hashMerkleRoot == uint256("0xeada32671ca86ee3b4eedd1ac7a3c11960740eb30ce68709a1206e4f1cac6fec"));
-
-        vSeeds.push_back(CDNSSeedData("seed1", "194.182.84.37"));  
-        vSeeds.push_back(CDNSSeedData("seed2", "194.182.86.227"));
-        vSeeds.push_back(CDNSSeedData("seed3", "212.237.54.7"));
-        vSeeds.push_back(CDNSSeedData("seed4", "167.179.64.56")); 
-        vSeeds.push_back(CDNSSeedData("seed5", "45.76.181.14"));  
-        vSeeds.push_back(CDNSSeedData("seed6", "45.77.205.122")); 
-
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,38); 
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,63); 
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,38);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,63);
         base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,155);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x07)(0x28)(0xA2)(0x4E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x03)(0xD8)(0xA1)(0xE5).convert_to_container<std::vector<unsigned char> >();
+
+        // GEX BIP44 coin type is '1'
+        nExtCoinType = 1;
 
         bech32_hrp = "bc";
 
@@ -234,14 +233,14 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
+        strSporkKey = "04DFC5FB8D2894EBED501BE65F96F7AE8AFACEE27CF84A22E2CCA11BF490AAAD3F132C8179F698BE39B9B60577F8DE2908E4978F449777D2C6ADC8D20F5004EC7B";
 
         strDarksendPoolDummyAddress = "GJQMPgtHpRzZH6fVToAoeg1ruG9yX8m14a";
-        nStartMasternodePayments = 1540218192; 
+        nStartMasternodePayments = 1540218192;
 
-        nStakingRoundPeriod = 60; 
-        nStakingInterval = 8;
-        nStakingMinAge = 6 * 60 * 60;
+        nStakingRoundPeriod = 120;
+        nStakingInterval = 22;
+        nStakingMinAge = 60 * 60;
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -264,9 +263,9 @@ public:
         consensus.nMajorityWindow = 100;
         //consensus.BIP34Height = 227931;
         //consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
-        consensus.powLimit = ~uint256(0) >> 10; 
-        consensus.nPowTargetTimespan = 30 * 60; 
-        consensus.nPowTargetSpacing = 2 * 60;  
+        consensus.powLimit = ~uint256(0) >> 10;
+        consensus.nPowTargetTimespan = 30 * 60;
+        consensus.nPowTargetSpacing = 2 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1368; // 95% of 1440 is
@@ -310,17 +309,9 @@ public:
         genesis.nVersion = 1;
         genesis.nTime = 1540828194; // 14 June 2018 @ 5:37am (UTC)
         genesis.nBits = 0x1e0fffff;
-        genesis.nNonce = 7170961;
-        genesis.hashStateRoot = uint256(h256Touint(dev::h256("e965ffd002cd6ad0e2dc402b8044de833e06b23127ea8c3d80aec91410771495"))); 
-        genesis.hashUTXORoot = uint256(h256Touint(dev::sha3(dev::rlp("")))); 
-
-//        while (!CheckProof(genesis.GetHash(), genesis.nBits)) {
-//            genesis.nNonce ++;
-//        }
-
-//        std::cout << genesis.nNonce << std::endl;
-//        std::cout << genesis.GetHash().GetHex() << std::endl;
-//        std::cout << genesis.hashMerkleRoot.GetHex() << std::endl;
+        genesis.nNonce = 10124125;
+        genesis.hashStateRoot = uint256(h256Touint(dev::h256("e965ffd002cd6ad0e2dc402b8044de833e06b23127ea8c3d80aec91410771495")));
+        genesis.hashUTXORoot = uint256(h256Touint(dev::sha3(dev::rlp(""))));
 
         nSwitchPhi2Block = 1000;
         nSplitRewardBlock = 1500;
@@ -329,27 +320,25 @@ public:
 
         consensus.hashGenesisBlock = genesis.GetHash();
 
-
-
-        assert(consensus.hashGenesisBlock == uint256("0x9d8fd23a1637f49d0034bd478acf328e22106c5d5dcb3d31479d14326d5964ab"));
+        assert(consensus.hashGenesisBlock == uint256("0x000001a87c5580276641c612e817f664c9a7e311009e4782e506ba6393d9eb76"));
         assert(genesis.hashMerkleRoot == uint256("0x354f6ef93679d9a86f01ebbf6d036871f527a462adf643f14ceaee2b64cbe430"));
 
         //vFixedSeeds.clear();
         //vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("seed1", "194.182.84.37"));  
+        vSeeds.push_back(CDNSSeedData("seed1", "194.182.84.37"));
         vSeeds.push_back(CDNSSeedData("seed2", "194.182.86.227"));
         vSeeds.push_back(CDNSSeedData("seed3", "212.237.54.7"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 28); 
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 63);  
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 28);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 63);
         base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 155);     // Testnet private keys start with '9' or 'c' (Bitcoin defaults)
 
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x3a)(0x80)(0x61)(0xa0).convert_to_container<std::vector<unsigned char> >();
- 
-        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x3a)(0x80)(0x58)(0x37).convert_to_container<std::vector<unsigned char> >();
-     
-        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x01)(0x00)(0x00)(0x80).convert_to_container<std::vector<unsigned char> >();
 
+        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x3a)(0x80)(0x58)(0x37).convert_to_container<std::vector<unsigned char> >();
+        // Testnet gex BIP44 coin type is '1' (All coin's testnet default)
+        // GEX BIP44 coin type is '1'
+        nExtCoinType = 1;
         bech32_hrp = "tb";
 
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
@@ -395,8 +384,8 @@ public:
         //consensus.BIP34Height = -1; // BIP34 has not necessarily activated on regtest
         //consensus.BIP34Hash = uint256();
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 24 * 60 * 60; 
-        consensus.nPowTargetSpacing = 1 * 60; 
+        consensus.nPowTargetTimespan = 24 * 60 * 60;
+        consensus.nPowTargetSpacing = 1 * 60;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 108; // 75% for testchains
@@ -488,9 +477,9 @@ public:
         consensus.nMajorityEnforceBlockUpgrade = 750;
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 1000;
-        consensus.powLimit = ~uint256(0) >> 20; 
-        consensus.nPowTargetTimespan = 10 * 60; 
-        consensus.nPowTargetSpacing = 60;  
+        consensus.powLimit = ~uint256(0) >> 20;
+        consensus.nPowTargetTimespan = 10 * 60;
+        consensus.nPowTargetSpacing = 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 9; // 95% of 10
@@ -561,12 +550,13 @@ public:
         assert(consensus.hashGenesisBlock == uint256("0xaefafe1215f8546a58c950b4ca65ed4f2ab96990f6f60ecbf3720f5d5cbca51e"));
         assert(genesis.hashMerkleRoot == uint256("0x36971bb40d3adfa718c5b337a4cce68ade7d6eed31de3af8338b61c769b72807"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,38); 
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,38);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,64);
         base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,155);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x07)(0x28)(0xA2)(0x4E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x03)(0xD8)(0xA1)(0xE5).convert_to_container<std::vector<unsigned char> >();
-
+        // GEX BIP44 coin type is '1'
+        nExtCoinType = 1;
         fMiningRequiresPeers = true;
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;

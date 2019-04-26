@@ -1,7 +1,9 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The GEX developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Copyright (c) 2019 The Gexan developers
+// Copyright (c) 2019 The XDNA Creation Team developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -79,6 +81,32 @@ UniValue GetNetworkHashPS(int lookup, int height)
     return (int64_t)(workDiff.getdouble() / timeDiff);
 }
 
+double GetPoWHashPS()
+{
+    int nPoWInterval = Params().Interval();
+    int64_t nTargetSpacingWorkMin = Params().TargetSpacing(), nTargetSpacingWork = Params().TargetSpacing();
+
+    CBlockIndex* pindex = chainActive.Genesis();
+    CBlockIndex* pindexPrevWork = chainActive.Genesis();
+    CBlockIndex* pindexPrev = chainActive.Tip();
+
+    while (pindex && pindex!=pindexPrev)
+    {
+        if (pindex->IsProofOfWork())
+        {
+            int64_t nActualSpacingWork = pindex->GetBlockTime() - pindexPrevWork->GetBlockTime();
+            nTargetSpacingWork = ((nPoWInterval - 1) * nTargetSpacingWork + nActualSpacingWork + nActualSpacingWork) / (nPoWInterval + 1);
+            nTargetSpacingWork = max(nTargetSpacingWork, nTargetSpacingWorkMin);
+            pindexPrevWork = pindex;
+        }
+
+        pindex = pindex->pnext;
+    }
+    CBlockIndex* powTip = GetLastBlockOfType(0);
+    return (GetDifficulty(powTip) * 4294.967296 / nTargetSpacingWork) * 1000000;
+}
+
+
 UniValue getnetworkhashps(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 2)
@@ -97,7 +125,7 @@ UniValue getnetworkhashps(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
 
-    return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1);
+    return GetPoWHashPS();
 }
 
 #ifdef ENABLE_WALLET
@@ -141,65 +169,35 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
             "\nTurn off generation\n" + HelpExampleCli("setgenerate", "false") +
             "\nUsing json rpc\n" + HelpExampleRpc("setgenerate", "true, 1"));
 
-//    if (pwalletMain == NULL)
-//        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
-//
-//    bool fGenerate = true;
-//    if (params.size() > 0)
-//        fGenerate = params[0].get_bool();
-//
-//    int nGenProcLimit = -1;
-//    if (params.size() > 1) {
-//        nGenProcLimit = params[1].get_int();
-//        if (nGenProcLimit == 0)
-//            fGenerate = false;
-//    }
-//
-//    // -regtest mode: don't return until nGenProcLimit blocks are generated
-//    if (fGenerate && Params().MineBlocksOnDemand()) {
-//        int nHeightStart = 0;
-//        int nHeightEnd = 0;
-//        int nHeight = 0;
-//        int nGenerate = (nGenProcLimit > 0 ? nGenProcLimit : 1);
-//        CReserveKey reservekey(pwalletMain);
-//
-//        { // Don't keep cs_main locked
-//            LOCK(cs_main);
-//            nHeightStart = chainActive.Height();
-//            nHeight = nHeightStart;
-//            nHeightEnd = nHeightStart + nGenerate;
-//        }
-//        unsigned int nExtraNonce = 0;
-//        UniValue blockHashes(UniValue::VARR);
-//        while (nHeight < nHeightEnd) {
-//            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, pwalletMain, false));
-//            if (!pblocktemplate.get())
-//                throw JSONRPCError(RPC_INTERNAL_ERROR, "Wallet keypool empty");
-//            CBlock* pblock = &pblocktemplate->block;
-//            {
-//                LOCK(cs_main);
-//                IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
-//            }
-//            //TODO: Phi2_hash hardfork block here !!!
-//            while (!ShutdownRequested() && !CheckProofOfWork(pblock->GetHash(/*nHeight+1 >= Params().SwitchPhi2Block()*/), pblock->nBits, Params().GetConsensus())) {
-//                // Yes, there is a chance every nonce could fail to satisfy the -regtest
-//                // target -- 1 in 2^(2^32). That ain't gonna happen.
-//                ++pblock->nNonce;
-//            }
-//            CValidationState state;
-//            if (!ShutdownRequested() && !ProcessNewBlock(state, Params(), NULL, pblock))
-//                throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
-//            ++nHeight;
-//            blockHashes.push_back(pblock->GetHash().GetHex());
-//        }
-//        return blockHashes;
-//    } else { // Not -regtest: start generate thread, return immediately
-//        mapArgs["-gen"] = (fGenerate ? "1" : "0");
-//        mapArgs["-genproclimit"] = itostr(nGenProcLimit);
-////        GenerateBitcoins(pwalletMain, nGenProcLimit);
-//    }
+    if (pwalletMain == NULL)
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
 
-    return NullUniValue;
+    bool fGenerate = true;
+    if (params.size() > 0)
+        fGenerate = params[0].get_bool();
+
+    int nGenProcLimit = -1;
+    if (params.size() > 1) {
+        nGenProcLimit = params[1].get_int();
+        if (nGenProcLimit == 0)
+            fGenerate = false;
+    }
+
+    // -regtest mode: don't return until nGenProcLimit blocks are generated
+    if (fGenerate && Params().MineBlocksOnDemand()) 
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
+    else { // Not -regtest: start generate thread, return immediately
+        mapArgs["-gen"] = (fGenerate ? "1" : "0");
+        mapArgs["-genproclimit"] = itostr(nGenProcLimit);
+        GenerateBitcoins(fGenerate, pwalletMain, nGenProcLimit);
+    }
+    UniValue obj(UniValue::VOBJ);
+    if(fGenerate)
+        obj.push_back(Pair("Start Gexan miner! Threads: ", (int)nGenProcLimit));
+    else
+         obj.push_back(Pair("Stop Gexan miner! Threads: ", (int)nGenProcLimit));
+
+    return obj;
 }
 
 UniValue gethashespersec(const UniValue& params, bool fHelp)
@@ -214,9 +212,9 @@ UniValue gethashespersec(const UniValue& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("gethashespersec", "") + HelpExampleRpc("gethashespersec", ""));
 
-//    if (GetTimeMillis() - nHPSTimerStart > 8000)
-//        return (int64_t)0;
-    return (int64_t)0;/*dHashesPerSec*/;
+    if (GetTimeMillis() - nHPSTimerStart > 8000)
+        return (int64_t)0;
+    return (int64_t)dHashesPerSec;
 }
 #endif
 
@@ -234,11 +232,9 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
             "  \"currentblocktx\": nnn,     (numeric) The last block transaction\n"
             "  \"difficulty\": xxx.xxxxx    (numeric) The current difficulty\n"
             "  \"errors\": \"...\"          (string) Current errors\n"
-#ifdef ENABLE_CPUMINER
             "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
             "  \"genproclimit\": n          (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)\n"
             "  \"hashespersec\": n          (numeric) The hashes per second of the generation, or 0 if no generation.\n"
-#endif
             "  \"pooledtx\": n              (numeric) The size of the mem pool\n"
             "  \"testnet\": true|false      (boolean) If using testnet or not\n"
             "  \"chain\": \"xxxx\",         (string) current network name as defined in BIP70 (main, test, regtest)\n"
@@ -255,17 +251,15 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
     obj.push_back(Pair("difficulty", (double)GetDifficulty(powTip)));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
-    obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
+    obj.push_back(Pair("networkhashps", GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1)));
     obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet", Params().NetworkIDString() != "main"));
     obj.push_back(Pair("chain", Params().NetworkIDString()));
     obj.push_back(Pair("algo", (chainActive.Height()+1) < Params().SwitchPhi2Block() ? "phi1612" : "phi2"));
     obj.push_back(Pair("segwit", IsWitnessEnabled(chainActive.Tip(), Params().GetConsensus()) ));
-#ifdef ENABLE_CPUMINER
     obj.push_back(Pair("generate", getgenerate(params, false)));
     obj.push_back(Pair("genproclimit", (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("hashespersec", gethashespersec(params, false)));
-#endif
     return obj;
 }
 
@@ -443,8 +437,8 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
                 throw JSONRPCError(RPC_TYPE_ERROR, "Missing data String key for proposal");
 
             CBlock block;
-           // if (!DecodeHexBlk(block, dataval.get_str()))
-               // throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+            if (!DecodeHexBlk(block, dataval.get_str()))
+                throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
 
             CBlockIndex* pindexPrev = LookupBlockIndex(block.hashPrevBlock);
             bool usePhi2 = pindexPrev ? pindexPrev->nHeight + 1 >= Params().SwitchPhi2Block() : false;
@@ -497,8 +491,8 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         if (vNodes.empty())
             throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "GEX is not connected!");
 
-      //  if (IsInitialBlockDownload())
-     //       throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "GEX is downloading blocks...");
+        if (IsInitialBlockDownload())
+            throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "GEX is downloading blocks...");
     }
 
     static unsigned int nTransactionsUpdatedLast;
@@ -812,8 +806,8 @@ UniValue getwork(const UniValue& params, bool fHelp) {
          if (vNodes.empty())
              throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Gex is not connected!");
 
-     //    if (IsInitialBlockDownload())
-          //   throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Gex is downloading blocks...");
+         if (IsInitialBlockDownload())
+             throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "GEX is downloading blocks...");
     }
 
     if (chainActive.Height() >= Params().LAST_POW_BLOCK())
@@ -852,7 +846,7 @@ UniValue getwork(const UniValue& params, bool fHelp) {
             CReserveKey reservekey(pwalletMain);
 
             CPubKey pubkey;
-            reservekey.GetReservedKey(pubkey);
+            reservekey.GetReservedKey(pubkey, true);
 
             pblocktemplate = BlockAssembler(Params()).CreateNewBlockWithKey(reservekey, false);
 
@@ -947,7 +941,7 @@ protected:
 
 UniValue submitblock(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 1 || params.size() > 2)
+    if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
             "submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
             "\nAttempts to submit new block to network.\n"
@@ -963,11 +957,14 @@ UniValue submitblock(const UniValue& params, bool fHelp)
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("submitblock", "\"mydata\"") + HelpExampleRpc("submitblock", "\"mydata\""));
+    }
 
     CBlock block;
-  //  if (!DecodeHexBlk(block, params[0].get_str()))
-   //     throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+    if (!DecodeHexBlk(block, params[0].get_str())) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+    }
 
+    CValidationState state;
     bool usePhi2, fBlockPresent = false;
     {
         LOCK(cs_main);
@@ -978,29 +975,42 @@ UniValue submitblock(const UniValue& params, bool fHelp)
         uint256 hash = block.GetHash(usePhi2);
         CBlockIndex* pindex = LookupBlockIndex(hash);
         if (pindex) {
-            if (pindex->IsValid(BLOCK_VALID_SCRIPTS))
+            if (pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
                 return "duplicate";
-            if (pindex->nStatus & BLOCK_FAILED_MASK)
+            }
+            if (pindex->nStatus & BLOCK_FAILED_MASK) {
                 return "duplicate-invalid";
+            }
             // Otherwise, we might only have the header - process the block before returning
             fBlockPresent = true;
         }
+        bool fValid = TestBlockValidity(state, Params(), block, pindexPrev, false, true);
+        if (!state.IsValid()) {
+            LogPrintf("%s: block state is not valid!\n", __func__);
+        }
+        if (!fValid) {
+            LogPrintf("%s: block is not valid!\n", __func__);
+        }
     }
 
-    CValidationState state;
     submitblock_StateCatcher sc(block.GetHash(usePhi2), usePhi2);
     RegisterValidationInterface(&sc);
     bool fAccepted = ProcessNewBlock(state, Params(), NULL, &block);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
-        if (fAccepted && !sc.found)
+        if (fAccepted && !sc.found) {
             return "duplicate-inconclusive";
+        }
         return "duplicate";
     }
     if (fAccepted) {
-        if (!sc.found)
+        if (!sc.found) {
             return "inconclusive";
+            }
         state = sc.state;
+    } else if (state.IsValid()) {
+        LogPrintf("%s: block not accepted but state is valid!\n", __func__);
+        return "rejected";
     }
     return BIP22ValidationResult(state);
 }

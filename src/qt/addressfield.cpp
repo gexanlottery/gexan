@@ -1,5 +1,6 @@
 // Copyright (c) 2016-2017 The Qtum Core developers
-// Copyright (c) 2018 The Gexan developers
+// Copyright (c) 2018 The Luxcore developers
+// Copyright (c) 2019 The Gexan developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,6 +10,7 @@
 #include "base58.h"
 #include "qvalidatedlineedit.h"
 #include "bitcoinaddressvalidator.h"
+#include "../main.h"
 #include <QLineEdit>
 #include <QCompleter>
 
@@ -79,6 +81,8 @@ void AddressField::on_refresh()
     // Initialize variables
     QString currentAddress = currentText();
     m_stringList.clear();
+    if (GetTime() < lastRefreshTime + 30) return; //only do this once every 30 secs
+    lastRefreshTime = GetTime();
     vector<COutput> vecOutputs;
     assert(pwalletMain != NULL);
 

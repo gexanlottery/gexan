@@ -8,7 +8,7 @@
 2. Clone gex repository
     
     ```shell
-    git clone https://github.com/216k155/gex
+    git clone https://github.com/gexanlottery/gexan
     ```
 
 3. Ensure mysql and boost installed.

@@ -1,7 +1,6 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2012-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The Gexan developers
+// Copyright (c) 2015-2018 The Luxcore developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -99,7 +98,9 @@ std::string to_internal(const std::string&);
 
 using namespace std;
 
-//GEX only features
+regex hexData("^([0-9a-fA-f]{2,}$)");
+
+//GEXAN only features
 int nLogFile = 1;
 bool fMasterNode = false;
 std::atomic<bool> hideLogMessage(false);
@@ -464,6 +465,27 @@ bool SoftSetBoolArg(const std::string& strArg, bool fValue)
         return SoftSetArg(strArg, std::string("0"));
 }
 
+void ForceSetArg(const std::string& strArg, const std::string& strValue)
+{
+    //LOCK(cs_args);
+    mapArgs[strArg] = strValue;
+}
+
+static const int screenWidth = 79;
+static const int optIndent = 2;
+static const int msgIndent = 7;
+
+std::string HelpMessageGroup(const std::string &message) {
+    return std::string(message) + std::string("\n\n");
+}
+
+std::string HelpMessageOpt(const std::string &option, const std::string &message) {
+    return std::string(optIndent,' ') + std::string(option) +
+           std::string("\n") + std::string(msgIndent,' ') +
+           FormatParagraph(message, screenWidth - msgIndent, msgIndent) +
+           std::string("\n\n");
+}
+
 static std::string FormatException(std::exception* pex, const char* pszThread)
 {
 #ifdef WIN32
@@ -551,9 +573,6 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific)
     return path;
 }
 
-
-
-
 void ClearDatadirCache()
 {
     pathCached = boost::filesystem::path();
@@ -584,8 +603,20 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
         // Create empty Gexan.conf if it does not exist
         FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
         if (configFile != NULL)
+        {
+            std::string strHeader = "# Gexan config file\n"
+                                    "addnode=95.181.226.86\n"
+                                    "addnode=95.181.226.87\n"
+                                    "addnode=45.76.33.100\n"
+                                    "addnode=167.179.64.56\n"
+                                    "addnode=45.76.181.14\n"
+                                    "addnode=45.77.205.122";
+            fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
             fclose(configFile);
-        return; // Nothing to read, so just return
+            streamConfig.open(GetConfigFile());
+        }
+            
+        //return; // Nothing to read, so just return
     }
 
     set<string> setOptions;
@@ -660,7 +691,7 @@ bool TryCreateDirectory(const boost::filesystem::path& p)
 {
     try {
         return boost::filesystem::create_directory(p);
-    } catch (boost::filesystem::filesystem_error) {
+    } catch (boost::filesystem::filesystem_error& e) {
         if (!boost::filesystem::exists(p) || !boost::filesystem::is_directory(p))
             throw;
     }

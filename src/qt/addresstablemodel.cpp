@@ -1,6 +1,8 @@
 // Copyright (c) 2011-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The GEX developers
+// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2018 The LUX developers
+// Copyright (c) 2019 The Gexan developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -333,14 +335,14 @@ QString AddressTableModel::addRow(const QString& type, const QString& label, con
     } else if (type == Receive) {
         // Generate a new address to associate with given label
         CPubKey newKey;
-        if (!wallet->GetKeyFromPool(newKey)) {
+        if (!wallet->GetKeyFromPool(newKey, false)) {
             WalletModel::UnlockContext ctx(walletModel->requestUnlock(true));
             if (!ctx.isValid()) {
                 // Unlock wallet failed or was cancelled
                 editStatus = WALLET_UNLOCK_FAILURE;
                 return QString();
             }
-            if (!wallet->GetKeyFromPool(newKey)) {
+            if (!wallet->GetKeyFromPool(newKey, false)) {
                 editStatus = KEY_GENERATION_FAILURE;
                 return QString();
             }
@@ -404,5 +406,5 @@ int AddressTableModel::lookupAddress(const QString& address) const
 
 void AddressTableModel::emitDataChanged(int idx)
 {
-    emit dataChanged(index(idx, 0, QModelIndex()), index(idx, columns.length() - 1, QModelIndex()));
+    Q_EMIT dataChanged(index(idx, 0, QModelIndex()), index(idx, columns.length() - 1, QModelIndex()));
 }

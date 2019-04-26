@@ -1,5 +1,7 @@
-// Copyright (c) 2011-2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2012-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "sync.h"
@@ -12,6 +14,9 @@
 #include <boost/thread.hpp>
 
 #ifdef DEBUG_LOCKCONTENTION
+#if !defined(HAVE_THREAD_LOCAL)
+static_assert(false, "thread_local is un-supported");
+#endif
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
     LogPrintf("LOCKCONTENTION: %s\n", pszName);

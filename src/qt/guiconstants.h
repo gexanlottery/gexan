@@ -8,13 +8,15 @@
 #define BITCOIN_QT_GUICONSTANTS_H
 
 /* Milliseconds between model updates */
-static const int MODEL_UPDATE_DELAY = 250;
+static const int MODEL_UPDATE_DELAY = 1000;
 
 /* AskPassphraseDialog -- Maximum passphrase length */
 static const int MAX_PASSPHRASE_SIZE = 1024;
 
 /* Gex GUI -- Size of icons in status bar */
 static const int STATUSBAR_ICONSIZE = 16;
+
+static const bool DEFAULT_SPLASHSCREEN = true;
 
 /* Invalid field background style */
 #define STYLE_INVALID "background:#FF8080"
@@ -31,7 +33,7 @@ static const int STATUSBAR_ICONSIZE = 16;
 /* Transaction list -- TX status decoration - default color */
 #define COLOR_BLACK QColor(0, 173, 78)	/* (0, 173, 78) green */
 /* Transaction list -- date - default color */
-#define COLOR_DATE QColor(254, 156, 14)	/* orange */
+#define COLOR_TX_STATUS_DANGER QColor(254, 156, 14)	/* orange */
 
 #define CONFIRM_ICONS 5
 

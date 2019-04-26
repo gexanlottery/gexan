@@ -1,8 +1,7 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2012-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The GEX developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
@@ -1402,7 +1401,7 @@ void ThreadOpenConnections() {
         boost::this_thread::interruption_point();
 
         // Add seed nodes if DNS seeds are all down (an infrastructure attack?).
-        if (addrman.size() == 0 && (GetTime() - nStart > 60)) {
+        if (addrman.size() == 0 && (GetTime() - nStart > 10)) {
             static bool done = false;
             if (!done) {
                 LogPrintf("Adding fixed seed nodes as DNS doesn't seem to be available.\n");
@@ -1541,7 +1540,6 @@ void ThreadOpenAddedConnections()
         LOCK(cs_vAddedNodes);
         vAddedNodes = mapMultiArgs["-addnode"];
     }
-
     for (unsigned int i = 0; true; i++)
     {
         std::vector<AddedNodeInfo> vInfo = GetAddedNodeInfo();
@@ -1555,7 +1553,7 @@ void ThreadOpenAddedConnections()
                 MilliSleep(500);
             }
         }
-        MilliSleep(120000); // Retry every 2 minutes
+        MilliSleep(30000); // Retry every 30 sec
     }
 }
 
@@ -1770,7 +1768,7 @@ void static Discover(boost::thread_group& threadGroup) {
     char pszHostName[256] = "";
     if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR) {
         vector<CNetAddr> vaddr;
-        if (LookupHost(pszHostName, vaddr)) {
+        if (LookupHost(pszHostName, vaddr, 0, true)) {
             for (const CNetAddr& addr : vaddr) {
                 if (AddLocal(addr, LOCAL_IF))
                     LogPrintf("%s: %s - %s\n", __func__, pszHostName, addr.ToString());
@@ -1808,8 +1806,12 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler) {
     // Load addresses for peers.dat
     int64_t nStart = GetTimeMillis();{
         CAddrDB adb;
-        if (!adb.Read(addrman))
+        if (adb.Read(addrman))
+            LogPrintf("Loaded %i addresses from peers.dat  %dms\n", addrman.size(), GetTimeMillis() - nStart);
+        else {
             LogPrintf("Invalid or missing peers.dat; recreating\n");
+            DumpAddresses();
+        }
     }
 
     //try to read stored banlist
@@ -1822,8 +1824,11 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler) {
 
         LogPrint("net", "Loaded %d banned node ips/subnets from banlist.dat  %dms\n",
                  banmap.size(), GetTimeMillis() - nStart);
-    } else
+    } else {
         LogPrintf("Invalid or missing banlist.dat; recreating\n");
+        CNode::SetBannedSetDirty(true);
+        DumpBanlist();
+    }
 
     fAddressesInitialized = true;
 
@@ -1842,7 +1847,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler) {
     // Start threads
     //
 
-    if (!GetBoolArg("-dnsseed", true))
+    if (!GetBoolArg("-dnsseed", false))
         LogPrintf("DNS seeding disabled\n");
     else
         threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
@@ -1880,9 +1885,11 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler) {
 bool StopNode() {
     LogPrintf("StopNode()\n");
     MapPort(false);
-    if (semOutbound)
-        for (int i = 0; i < MAX_OUTBOUND_CONNECTIONS; i++)
+    if (semOutbound) {
+        for (int i = 0; i < MAX_OUTBOUND_CONNECTIONS; i++) {
             semOutbound->post();
+        }
+    }
 
     if (fAddressesInitialized) {
         DumpData();
@@ -2002,7 +2009,7 @@ void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
 {
     CInv inv(MSG_TXLOCK_REQUEST, tx.GetHash());
 
-    //broadcast the new node 
+    //broadcast the new node
     vector<CNode*> vNodesCopy;
     {
         LOCK(cs_vNodes);

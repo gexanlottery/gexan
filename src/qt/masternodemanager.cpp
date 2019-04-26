@@ -29,7 +29,6 @@ using namespace std;
 #include <QClipboard>
 #include <QMessageBox>
 #include <QThread>
-#include <QtConcurrent/QtConcurrent>
 #include <QScrollBar>
 #include <QMessageBox>
 
@@ -41,20 +40,25 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //ui->editButton->setEnabled(false);
-   // ui->getConfigButton->setEnabled(false);
-   // ui->startButton->setEnabled(false);
-   // ui->stopButton->setEnabled(false);
+    ui->editButton->setEnabled(false);
+    ui->getConfigButton->setEnabled(false);
+    ui->startButton->setEnabled(false);
+    ui->stopButton->setEnabled(false);
     //ui->copyAddressButton->setEnabled(false);
 
     subscribeToCoreSignals();
-
+    ui->tabWidget->removeTab(2);
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
-        timer->start(1000);
+    timer->start(1000);
 
-        fFilterUpdated = true;
-	nTimeFilterUpdated = GetTime();
+    //FR
+    timer2 = new QTimer(this);
+    connect(timer2, SIGNAL(timeout()), this, SLOT(updateMYNodeList()));
+    timer2->start(1000);
+
+    fFilterUpdated = true;
+    nTimeFilterUpdated = GetTime();
 }
 
 MasternodeManager::~MasternodeManager()
@@ -90,24 +94,24 @@ void MasternodeManager::unsubscribeFromCoreSignals()
     uiInterface.NotifyGexNodeChanged.disconnect(boost::bind(&NotifyGexNodeUpdated, this, _1));
 }
 
-//void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
-//{
-   // if(ui->tableWidget_2->selectedItems().count() > 0)
-   // {
-    //    ui->editButton->setEnabled(true);
-    //    ui->getConfigButton->setEnabled(true);
-    //    ui->startButton->setEnabled(true);
-    //    ui->stopButton->setEnabled(true);
-	   //ui->copyAddressButton->setEnabled(true);
-   // }
-//}
+void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
+{
+    if(ui->tableWidget_2->selectedItems().count() > 0)
+    {
+        ui->editButton->setEnabled(true);
+        ui->getConfigButton->setEnabled(true);
+        ui->startButton->setEnabled(true);
+        ui->stopButton->setEnabled(true);
+        //ui->copyAddressButton->setEnabled(true);
+    }
+}
 
 void MasternodeManager::updateGexNode(QString alias, QString addr, QString privkey, QString collateral)
 {
     LOCK(cs_adrenaline);
     bool bFound = false;
     int nodeRow = 0;
-    /*for(int i=0; i < ui->tableWidget_2->rowCount(); i++)
+    for(int i=0; i < ui->tableWidget_2->rowCount(); i++)
     {
         if(ui->tableWidget_2->item(i, 0)->text() == alias)
         {
@@ -118,17 +122,17 @@ void MasternodeManager::updateGexNode(QString alias, QString addr, QString privk
     }
 
     if(nodeRow == 0 && !bFound)
-        ui->tableWidget_2->insertRow(0);*/
+        ui->tableWidget_2->insertRow(0);
 
     QTableWidgetItem *aliasItem = new QTableWidgetItem(alias);
     QTableWidgetItem *addrItem = new QTableWidgetItem(addr);
     QTableWidgetItem *statusItem = new QTableWidgetItem("");
     QTableWidgetItem *collateralItem = new QTableWidgetItem(collateral);
 
-   // ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
-   // ui->tableWidget_2->setItem(nodeRow, 1, addrItem);
-  //  ui->tableWidget_2->setItem(nodeRow, 2, statusItem);
-   // ui->tableWidget_2->setItem(nodeRow, 3, collateralItem); 
+    ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
+    ui->tableWidget_2->setItem(nodeRow, 1, addrItem);
+    ui->tableWidget_2->setItem(nodeRow, 2, statusItem);
+    ui->tableWidget_2->setItem(nodeRow, 3, collateralItem);
 }
 
 static QString seconds_to_DHMS(quint32 duration)
@@ -165,7 +169,7 @@ void MasternodeManager::updateNodeList()
 
  	// populate list
 	// Address, Rank, Active, Active Seconds, Last Seen, Pub Key
-	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::number(mn.IsEnabled()));
+	QTableWidgetItem *activeItem = new QTableWidgetItem(mn.IsEnabled() ? tr("yes") : tr("no"));
 	QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 	QTableWidgetItem *rankItem = new QTableWidgetItem(QString::number(GetMasternodeRank(mn.vin, chainActive.Height())));
 	QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(mn.lastTimeSeen - mn.now)));
@@ -197,6 +201,68 @@ void MasternodeManager::updateNodeList()
     }
 }
 
+//FR
+void MasternodeManager::updateMYNodeList()
+{
+    TRY_LOCK(cs_masternodes, lockMasternodes);
+    if(!lockMasternodes)
+        return;
+
+    ui->myCountTable->setText("Updating...");
+    ui->tableWidgetMy->clearContents();
+    ui->tableWidgetMy->setRowCount(0);
+
+
+    //get here array with my masternodes
+
+    for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
+        if (ShutdownRequested()) return;
+    ui->tableWidgetMy->insertRow(0);
+    int nIndex = 0;
+    int mnRow = 0;
+    nIndex = std::stoi(mne.getOutputIndex());  
+    CTxIn vin = CTxIn(uint256(mne.getTxHash()), uint32_t(nIndex));
+    int mnIndex = GetMasternodeByVin(vin);
+
+    QTableWidgetItem *alias = new QTableWidgetItem(QString::fromStdString(mne.getAlias())); 
+    QTableWidgetItem *activeItem = new QTableWidgetItem(tr("no")); 
+    QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mne.getIp()));
+    QTableWidgetItem *rankItem = new QTableWidgetItem(QString::number(0));
+    QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(0))); 
+    QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M:%S",0)));
+    QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString("")); 
+    if(mnIndex != -1)
+    {
+       CMasterNode mn =  vecMasternodes[mnIndex];
+       CScript pubkey;
+       pubkey = GetScriptForDestination(mn.pubkey.GetID());
+       CTxDestination address1;
+       ExtractDestination(pubkey, address1); 
+       activeItem = new QTableWidgetItem(mn.IsEnabled() ? tr("yes") : tr("no"));
+	   addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
+	   rankItem = new QTableWidgetItem(QString::number(GetMasternodeRank(mn.vin, chainActive.Height())));
+	   activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(mn.lastTimeSeen - mn.now)));
+	   lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M:%S", mn.lastTimeSeen)));
+	   pubkeyItem = new QTableWidgetItem(QString::fromStdString(EncodeDestination(address1)));
+    }
+
+             
+    
+
+	ui->tableWidgetMy->setItem(mnRow, 0, alias);
+	ui->tableWidgetMy->setItem(mnRow, 1, addressItem);
+	ui->tableWidgetMy->setItem(mnRow, 2, rankItem);
+	ui->tableWidgetMy->setItem(mnRow, 3, activeItem);
+	ui->tableWidgetMy->setItem(mnRow, 4, activeSecondsItem);
+	ui->tableWidgetMy->setItem(mnRow, 5, lastSeenItem);
+	ui->tableWidgetMy->setItem(mnRow, 6, pubkeyItem);
+    }
+
+    ui->myCountTable->setText(QString::number(ui->tableWidgetMy->rowCount()));
+
+
+}
+
 void MasternodeManager::setClientModel(ClientModel *model)
 {
     this->clientModel = model;
@@ -210,17 +276,24 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     this->walletModel = model;
     if(model && model->getOptionsModel())
     {
+        setPMNsVisible(model->getOptionsModel()->getParallelMasternodes());
+        connect(model->getOptionsModel(), SIGNAL(parallelMasternodesChanged(bool)), this, SLOT(setPMNsVisible(bool)));
     }
-
 }
 
-/*void MasternodeManager::on_createButton_clicked()
+void MasternodeManager::setPMNsVisible(bool visible)
+{
+    ui->tableWidgetPMN->setVisible(visible);
+    ui->labelPMN->setVisible(visible);
+}
+
+void MasternodeManager::on_createButton_clicked()
 {
     AddEditGexNode* aenode = new AddEditGexNode();
     aenode->exec();
-} */
-
-/*void MasternodeManager::on_copyAddressButton_clicked()
+}
+#if 0
+void MasternodeManager::on_copyAddressButton_clicked()
 {
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -231,11 +304,11 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     int r = index.row();
     std::string sCollateralAddress = ui->tableWidget_2->item(r, 3)->text().toStdString();
 
-    QApplication::clipboard()->setText(QString::fromStdString(sCollateralAddress)); 
-}*/
-
-/*void MasternodeManager::on_editButton_clicked()
-{ 
+    QApplication::clipboard()->setText(QString::fromStdString(sCollateralAddress));
+}
+#endif
+void MasternodeManager::on_editButton_clicked()
+{
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
     if(selected.count() == 0)
@@ -245,12 +318,12 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
 
-    // get existing config entry 
+    // get existing config entry
 
-}*/
+}
 
-/*void MasternodeManager::on_getConfigButton_clicked()
-{ 
+void MasternodeManager::on_getConfigButton_clicked()
+{
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
     if(selected.count() == 0)
@@ -264,9 +337,9 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     GexNodeConfigDialog* d = new GexNodeConfigDialog(this, QString::fromStdString(sAddress), QString::fromStdString(sPrivKey));
     d->exec(); 
 }
-*/
-/*void MasternodeManager::on_removeButton_clicked()
-{ 
+
+void MasternodeManager::on_removeButton_clicked()
+{
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
     if(selected.count() == 0)
@@ -290,11 +363,11 @@ void MasternodeManager::setWalletModel(WalletModel *model)
         {
             updateGexNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
         }
-    } 
-}*/
+    }
+}
 
-/*void MasternodeManager::on_startButton_clicked()
-{ 
+void MasternodeManager::on_startButton_clicked()
+{
     // start the node
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -315,11 +388,11 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     else
         msg.setText("Error: " + QString::fromStdString(errorMessage));
 
-    msg.exec(); 
-}*/
+    msg.exec();
+}
 
-/*void MasternodeManager::on_stopButton_clicked()
-{ 
+void MasternodeManager::on_stopButton_clicked()
+{
     // start the node
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -342,10 +415,10 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     {
         msg.setText("Error: " + QString::fromStdString(errorMessage));
     }
-    msg.exec(); 
-}*/
+    msg.exec();
+}
 
-/*void MasternodeManager::on_startAllButton_clicked()
+void MasternodeManager::on_startAllButton_clicked()
 {
     std::string results;
     for (PAIRTYPE(std::string, CGexNodeConfig) adrenaline : pwalletMain->mapMyGexNodes)
@@ -366,9 +439,9 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     QMessageBox msg;
     msg.setText(QString::fromStdString(results));
     msg.exec();
-} */
+}
 
-/*void MasternodeManager::on_stopAllButton_clicked()
+void MasternodeManager::on_stopAllButton_clicked()
 {
     std::string results;
     for (PAIRTYPE(std::string, CGexNodeConfig) adrenaline : pwalletMain->mapMyGexNodes)
@@ -389,6 +462,6 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     QMessageBox msg;
     msg.setText(QString::fromStdString(results));
     msg.exec();
-}*/
+}
 
 

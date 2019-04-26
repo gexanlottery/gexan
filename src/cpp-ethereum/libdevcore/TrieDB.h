@@ -88,7 +88,7 @@ public:
 		if (_v == Verification::Normal)
 #endif
 			if (!node(m_root).size())
-				init();
+				BOOST_THROW_EXCEPTION(RootNotFound());
 	}
 
 	/// True if the trie is uninitialised (i.e. that the DB doesn't contain the root node).

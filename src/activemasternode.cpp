@@ -2,14 +2,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activemasternode.h"
-#include "addrman.h"
-#include "masternode.h"
-#include "masternodeconfig.h"
 #include "protocol.h"
-#include "spork.h"
+#include "activemasternode.h"
 #include <boost/lexical_cast.hpp>
 #include "clientversion.h"
+#include "masternodeconfig.h"
 
 //
 // Bootup the masternode, look for a 5000 Gex input and register on the network
@@ -105,6 +102,28 @@ void CActiveMasternode::ManageStatus() {
     //send to all peers
     if (!Dseep(errorMessage)) {
         LogPrintf("CActiveMasternode::ManageStatus() - Error on Ping: %s", errorMessage.c_str());
+    }
+}
+
+std::string CActiveMasternode::GetStatus()
+{
+    switch (status) {
+    case MASTERNODE_NOT_PROCESSED:
+        return "Node just started, not yet activated";
+    case MASTERNODE_SYNC_IN_PROCESS:
+        return "Sync in progress. Must wait until sync is complete to start Masternode";
+    case MASTERNODE_INPUT_TOO_NEW:
+        return strprintf("Masternode input must have at least %d confirmations", MASTERNODE_MIN_CONFIRMATIONS);
+    case MASTERNODE_NOT_CAPABLE:
+        return "Not capable masternode: " + notCapableReason;
+    case MASTERNODE_IS_CAPABLE:
+        return "Masternode successfully started";
+    case MASTERNODE_REMOTELY_ENABLED:
+        return "Masternode successfully started";
+    case MASTERNODE_STOPPED:
+        return "Masternode is stopped";   
+    default:
+        return "unknown";
     }
 }
 
@@ -290,6 +309,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
     }
 
     //send to all peers
+    pwalletMain->LockCoin(vin.prevout);
     LogPrintf("CActiveMasternode::Register() - SendDarkSendElectionEntry vin = %s\n", vin.ToString().c_str());
     SendDarkSendElectionEntry(vin, service, vchMasterNodeSignature, masterNodeSignatureTime, pubKeyCollateralAddress, pubKeyMasternode, -1, -1, masterNodeSignatureTime, PROTOCOL_VERSION);
 
@@ -446,7 +466,7 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode() {
     if (!confLockedCoins.empty()) {
         for (COutPoint outpoint : confLockedCoins)
             pwalletMain->LockCoin(outpoint);
-}
+    }
 
     // Filter
     for (const COutput& out : vCoins) {

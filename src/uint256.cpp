@@ -1,6 +1,7 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2012-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "uint256.h"
@@ -237,6 +238,7 @@ template bool base_uint<160>::EqualTo(uint64_t) const;
 template double base_uint<160>::getdouble() const;
 template std::string base_uint<160>::GetHex() const;
 template std::string base_uint<160>::ToString() const;
+template std::string base_uint<160>::ToStringReverseEndian() const;
 template void base_uint<160>::SetHex(const char*);
 template void base_uint<160>::SetHex(const std::string&);
 template unsigned int base_uint<160>::bits() const;

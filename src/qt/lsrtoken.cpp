@@ -93,9 +93,9 @@ public:
     }
 };
 
-LSRToken::LSRToken(QWidget *parent) :
+GSRToken::GSRToken(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::LSRToken),
+    ui(new Ui::GSRToken),
     m_model(0),
     m_clientModel(0),
     m_tokenModel(0),
@@ -165,12 +165,12 @@ LSRToken::LSRToken(QWidget *parent) :
     on_goToSendTokenPage();
 }
 
-LSRToken::~LSRToken()
+GSRToken::~GSRToken()
 {
     delete ui;
 }
 
-void LSRToken::setModel(WalletModel *_model)
+void GSRToken::setModel(WalletModel *_model)
 {
     m_model = _model;
     m_addTokenPage->setModel(m_model);
@@ -201,32 +201,32 @@ void LSRToken::setModel(WalletModel *_model)
     }
 }
 
-void LSRToken::setClientModel(ClientModel *_clientModel)
+void GSRToken::setClientModel(ClientModel *_clientModel)
 {
     m_clientModel = _clientModel;
     m_sendTokenPage->setClientModel(_clientModel);
     m_addTokenPage->setClientModel(_clientModel);
 }
 
-void LSRToken::on_goToSendTokenPage()
+void GSRToken::on_goToSendTokenPage()
 {
     m_sendAction->setChecked(true);
     ui->stackedWidget->setCurrentIndex(0);
 }
 
-void LSRToken::on_goToReceiveTokenPage()
+void GSRToken::on_goToReceiveTokenPage()
 {
     m_receiveAction->setChecked(true);
     ui->stackedWidget->setCurrentIndex(1);
 }
 
-void LSRToken::on_goToAddTokenPage()
+void GSRToken::on_goToAddTokenPage()
 {
     m_addTokenAction->setChecked(true);
     ui->stackedWidget->setCurrentIndex(2);
 }
 
-void LSRToken::on_currentTokenChanged(QModelIndex index)
+void GSRToken::on_currentTokenChanged(QModelIndex index)
 {
     if(m_tokenModel)
     {
@@ -255,7 +255,7 @@ void LSRToken::on_currentTokenChanged(QModelIndex index)
     }
 }
 
-void LSRToken::on_dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
+void GSRToken::on_dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
 {
     Q_UNUSED(bottomRight);
     Q_UNUSED(roles);
@@ -271,14 +271,14 @@ void LSRToken::on_dataChanged(const QModelIndex &topLeft, const QModelIndex &bot
     }
 }
 
-void LSRToken::on_currentChanged(QModelIndex current, QModelIndex previous)
+void GSRToken::on_currentChanged(QModelIndex current, QModelIndex previous)
 {
     Q_UNUSED(previous);
 
     on_currentTokenChanged(current);
 }
 
-void LSRToken::on_rowsInserted(QModelIndex index, int first, int last)
+void GSRToken::on_rowsInserted(QModelIndex index, int first, int last)
 {
     Q_UNUSED(index);
     Q_UNUSED(first);
@@ -292,7 +292,7 @@ void LSRToken::on_rowsInserted(QModelIndex index, int first, int last)
     }
 }
 
-void LSRToken::contextualMenu(const QPoint &point)
+void GSRToken::contextualMenu(const QPoint &point)
 {
     QModelIndex index = ui->tokensList->indexAt(point);
     QModelIndexList selection = ui->tokensList->selectionModel()->selectedIndexes();
@@ -305,27 +305,27 @@ void LSRToken::contextualMenu(const QPoint &point)
     }
 }
 
-void LSRToken::copyTokenAddress()
+void GSRToken::copyTokenAddress()
 {
     GUIUtil::copyEntryDataFromList(ui->tokensList, TokenItemModel::AddressRole);
 }
 
-void LSRToken::copyTokenBalance()
+void GSRToken::copyTokenBalance()
 {
     GUIUtil::copyEntryDataFromList(ui->tokensList, TokenItemModel::BalanceRole);
 }
 
-void LSRToken::copyTokenName()
+void GSRToken::copyTokenName()
 {
     GUIUtil::copyEntryDataFromList(ui->tokensList, TokenItemModel::NameRole);
 }
 
-void LSRToken::copySenderAddress()
+void GSRToken::copySenderAddress()
 {
     GUIUtil::copyEntryDataFromList(ui->tokensList, TokenItemModel::SenderRole);
 }
 
-void LSRToken::removeToken()
+void GSRToken::removeToken()
 {
     QMessageBox::StandardButton btnRetVal = QMessageBox::question(this, tr("Confirm token remove"), tr("The selected token will be removed from the list. Are you sure?"),
                                                                   QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
@@ -340,4 +340,15 @@ void LSRToken::removeToken()
         std::string sHash = index.data(TokenItemModel::HashRole).toString().toStdString();
         m_model->removeTokenEntry(sHash);
     }
+}
+
+
+void GSRToken::focusToken(const QModelIndex& idx)
+{
+    if (!m_tokenModel)
+        return;
+    QModelIndex targetIdx = m_tokenModel->mapFromSource(idx);
+    ui->tokensList->scrollTo(targetIdx);
+    ui->tokensList->setCurrentIndex(targetIdx);
+    ui->tokensList->setFocus();
 }

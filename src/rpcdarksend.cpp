@@ -1,6 +1,7 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Darkcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2012-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2018 The Luxcore developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "main.h"
@@ -43,7 +44,11 @@ void SendMoney(const CTxDestination& address, CAmount nValue, CWalletTx& wtxNew,
     // Create and send the transaction
     CReserveKey reservekey(pwalletMain);
     CAmount nFeeRequired;
-    if (!pwalletMain->CreateTransaction(scriptPubKey, nValue, wtxNew, reservekey, nFeeRequired, strError, NULL, coin_type)) {
+    std::vector<CRecipient> vecSend;
+    CRecipient recipient = {scriptPubKey, nValue, false};
+    vecSend.push_back(recipient);
+    int nChangePos;
+    if (!pwalletMain->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePos, strError, NULL, coin_type)) {
         if (nValue + nFeeRequired > pwalletMain->GetBalance())
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
         LogPrintf("SendMoney() : %s\n", strError);
@@ -124,9 +129,9 @@ UniValue masternode(const UniValue& params, bool fHelp) {
     if (fHelp ||
         (strCommand != "start" && strCommand != "start-alias" && strCommand != "start-many" && strCommand != "stop" && strCommand != "stop-alias" && strCommand != "stop-many" &&
          strCommand != "list" && strCommand != "list-conf" && strCommand != "count" && strCommand != "enforce"
-         && strCommand != "debug" && strCommand != "current" && strCommand != "winners" && strCommand != "genkey" && strCommand != "connect" && strCommand != "outputs"))
+         && strCommand != "debug" && strCommand != "current" && strCommand != "winners" && strCommand != "genkey" && strCommand != "connect" && strCommand != "outputs" && strCommand != "status" ))
         throw runtime_error(
-            "masternode <start|start-alias|start-many|stop|stop-alias|stop-many|list|list-conf|count|debug|current|winners|genkey|enforce|outputs> [passphrase]\n");
+            "masternode <start|start-alias|start-many|stop|stop-alias|stop-many|list|list-conf|count|debug|current|winners|genkey|enforce|outputs|status> [passphrase]\n");
 
     if (strCommand == "stop") {
         if (!fMasterNode) return "you must set masternode=1 in the configuration";
@@ -265,31 +270,61 @@ UniValue masternode(const UniValue& params, bool fHelp) {
     }
 
     if (strCommand == "list") {
-        std::string strCommand = "active";
+        std::string strCommand = "pivx";
 
         if (params.size() == 2) {
             strCommand = params[1].get_str().c_str();
         }
 
-        if (strCommand != "active" && strCommand != "vin" && strCommand != "pubkey" && strCommand != "lastseen" && strCommand != "activeseconds" && strCommand != "rank" && strCommand != "protocol") {
+        if (strCommand != "active" && strCommand != "vin" && strCommand != "pubkey" && strCommand != "lastseen" && strCommand != "activeseconds" && strCommand != "rank" && strCommand != "protocol" && strCommand != "full" && strCommand != "pivx" ) {
             throw runtime_error(
-                "list supports 'active', 'vin', 'pubkey', 'lastseen', 'activeseconds', 'rank', 'protocol'\n");
+                "list supports 'active', 'vin', 'pubkey', 'lastseen', 'activeseconds', 'rank', 'protocol', 'full', 'pivx'\n");
         }
 
         UniValue obj(UniValue::VOBJ);
+        UniValue ret(UniValue::VARR);
         for (CMasterNode mn : vecMasternodes) {
             mn.Check();
+            CScript pubkey;
+            pubkey = GetScriptForDestination(mn.pubkey.GetID());
+            CTxDestination address1;
+            ExtractDestination(pubkey, address1);
+            CTxDestination address2(address1);
+
+            if(strCommand == "pivx")
+            {
+                UniValue obj(UniValue::VOBJ);
+                obj.push_back(Pair("rank",  (int) (GetMasternodeRank(mn.vin, chainActive.Height()))));
+                obj.push_back(Pair("network", "ipv4")); // SpiderCore support ipv4 only
+                obj.push_back(Pair("txhash",  mn.vin.prevout.hash.ToString()));
+                obj.push_back(Pair("outidx", (uint64_t) mn.vin.prevout.n));
+                obj.push_back(Pair("status", mn.IsEnabled() == true ? "ENABLED" : "MISSING"));
+                obj.push_back(Pair("addr", EncodeDestination(address2)));
+                obj.push_back(Pair("version", (int64_t) mn.protocolVersion));
+                obj.push_back(Pair("lastseen", (int64_t) mn.lastTimeSeen));
+                obj.push_back(Pair("activetime", (int64_t)(mn.lastTimeSeen - mn.now)));
+                obj.push_back(Pair("lastpaid", "0"));
+                ret.push_back(obj);
+            }
+            if(strCommand == "full")
+            {
+                
+                UniValue mn_full(UniValue::VOBJ);
+                mn_full.push_back(Pair("ip",mn.addr.ToString().c_str()));
+                mn_full.push_back(Pair("status", mn.IsEnabled() == true ? "ENABLED" : "MISSING"));
+                mn_full.push_back(Pair("address",EncodeDestination(address2)));
+                mn_full.push_back(Pair("lastseen",(int64_t) mn.lastTimeSeen));
+                mn_full.push_back(Pair("rank",(int) (GetMasternodeRank(mn.vin, chainActive.Height()))));
+                ret.push_back(mn_full);
+
+            }
 
             if (strCommand == "active") {
                 obj.push_back(Pair(mn.addr.ToString().c_str(), (int) mn.IsEnabled()));
             } else if (strCommand == "vin") {
                 obj.push_back(Pair(mn.addr.ToString().c_str(), mn.vin.prevout.hash.ToString().c_str()));
             } else if (strCommand == "pubkey") {
-                CScript pubkey;
-                pubkey = GetScriptForDestination(mn.pubkey.GetID());
-                CTxDestination address1;
-                ExtractDestination(pubkey, address1);
-                CTxDestination address2(address1);
+
 
                 obj.push_back(Pair(mn.addr.ToString().c_str(), EncodeDestination(address2)));
             } else if (strCommand == "protocol") {
@@ -302,9 +337,27 @@ UniValue masternode(const UniValue& params, bool fHelp) {
                 obj.push_back(Pair(mn.addr.ToString().c_str(), (int) (GetMasternodeRank(mn.vin, chainActive.Height()))));
             }
         }
-        return obj;
+        if(strCommand == "full" || strCommand == "pivx")
+            return ret;
+        return obj;  
     }
-    if (strCommand == "count") return (int) vecMasternodes.size();
+    if (strCommand == "count")
+    {
+        std::string strCommand = "active";
+        int active_mn = 0;
+        if (params.size() == 2) {
+            strCommand = params[1].get_str().c_str();
+        }
+        if(strCommand == "active"){
+            for (CMasterNode mn : vecMasternodes) {
+                mn.Check();
+                if(mn.IsEnabled())
+                    active_mn++;
+            }
+            return active_mn;
+        }    
+        return (int) vecMasternodes.size();
+    }
 
     if (strCommand == "start") {
         if (!fMasterNode) return "you must set masternode=1 in the configuration";
@@ -543,8 +596,7 @@ UniValue masternode(const UniValue& params, bool fHelp) {
     }
 
     if (strCommand == "list-conf") {
-        std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
-        mnEntries = masternodeConfig.getEntries();
+
 
         UniValue resultObj(UniValue::VOBJ);
 
@@ -555,12 +607,44 @@ UniValue masternode(const UniValue& params, bool fHelp) {
             mnObj.push_back(Pair("privateKey", mne.getPrivKey()));
             mnObj.push_back(Pair("txHash", mne.getTxHash()));
             mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
+            int nIndex = 0;
+            nIndex = std::stoi(mne.getOutputIndex());  
+            CTxIn vin = CTxIn(uint256(mne.getTxHash()), uint32_t(nIndex));
+            int mnIndex = GetMasternodeByVin(vin);
+            if (mnIndex != -1) 
+                mnObj.push_back(Pair("status", vecMasternodes[mnIndex].IsEnabled() == true ? "ENABLED" : "MISSING"));
+            else
+                mnObj.push_back(Pair("status", "MISSING"));
+
             resultObj.push_back(Pair("masternode", mnObj));
         }
 
         return resultObj;
     }
+    if (strCommand == "status") {
+        if (!fMasterNode) throw runtime_error("This is not a masternode");
+        int mnIndex = GetMasternodeByVin(activeMasternode.vin);
+        if(mnIndex != -1)
+        {
+            CMasterNode mn = vecMasternodes[mnIndex];
+            UniValue mnObj(UniValue::VOBJ);
+            mnObj.push_back(Pair("txhash", activeMasternode.vin.prevout.hash.ToString()));
+            mnObj.push_back(Pair("outputidx", (uint64_t)activeMasternode.vin.prevout.n));
+            mnObj.push_back(Pair("netaddr", activeMasternode.service.ToString()));
+	        CScript pubkey;
+            pubkey = GetScriptForDestination(mn.pubkey.GetID());
+            CTxDestination address1;
+            ExtractDestination(pubkey, address1);
+            mnObj.push_back(Pair("addr", EncodeDestination(address1)));
+            mnObj.push_back(Pair("status", activeMasternode.status));
+            mnObj.push_back(Pair("message", activeMasternode.GetStatus()));
+            return mnObj;
+        }
+        throw runtime_error("Masternode not found in the list of available masternodes. Current status: "
+                        + activeMasternode.GetStatus()); 
+        
 
+    }
     if (strCommand == "outputs") {
         // Find possible candidates
         vector<COutput> possibleCoins = activeMasternode.SelectCoinsMasternode();
