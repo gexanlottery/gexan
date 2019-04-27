@@ -168,7 +168,7 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 4-byte int at any alignment.
          */
-        pchMessageStart[0] = 0x61;
+        pchMessageStart[0] = 0x62;
         pchMessageStart[1] = 0xb3;
         pchMessageStart[2] = 0xc8;
         pchMessageStart[3] = 0xa9;
