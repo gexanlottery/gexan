@@ -876,9 +876,9 @@ bool AppInit2()
     if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0)
     {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
-        if (SoftSetBoolArg("-dnsseed", false))
+        if (SoftSetBoolArg("-dnsseed", true))
             LogPrintf("AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n");
-        if (SoftSetBoolArg("-listen", false))
+        if (SoftSetBoolArg("-listen", true))
             LogPrintf("AppInit2 : parameter interaction: -connect set -> setting -listen=0\n");
     }
 

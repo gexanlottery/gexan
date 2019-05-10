@@ -74,6 +74,8 @@ using namespace std;
 
 const int LAST_HEIGHT_FEE_BLOCK = 180;
 
+const int ACTIVE_REFUND_HEIGHT = 250000;
+
 
 /**
  * Global GexState
@@ -3052,7 +3054,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         }
 
         if(pindex->nHeight >= Params().FirstSCBlock()) {
-            bool ignoreGasRefund = (IsTestNet() && pindex->nHeight < 18500);
+            bool ignoreGasRefund = (pindex->nHeight < ACTIVE_REFUND_HEIGHT);
             if (!CheckRefund(block, checkVouts) && !ignoreGasRefund) {
                 /*return state.DoS(100, error*/ LogPrintf("CheckRefund(): Gas refund missing");
             }
@@ -3086,7 +3088,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs]\n", nInputs - 1, 0.001 * (nTime2 - nTimeStart), nInputs <= 1 ? 0 : 0.001 * (nTime2 - nTimeStart) / (nInputs - 1), nTimeVerify * 0.000001);
 
     ////////////////////////////////////////////////////////////////// // gex
-    if (pindex->nHeight >= Params().FirstSCBlock()) {
+    if (pindex->nHeight >= Params().FirstSCBlock() && pindex->nHeight > ACTIVE_REFUND_HEIGHT) {
 
         dev::h256 oldHashStateRoot = getGlobalStateRoot(pindex);
         dev::h256 oldHashUTXORoot = getGlobalStateUTXO(pindex);
@@ -4412,7 +4414,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     unsigned int nTx = 0;
     for (const CTransaction& tx : block.vtx) {
         //TODO add exceptions for already accepted PoS-contract blocks
-        if (block.IsProofOfStake() && !IsTestNet() && chainActive.Height() + 1 != 350039 && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
+        if (block.IsProofOfStake() && !IsTestNet() && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
             return error("%s: smart contracts are not supported yet in PoS blocks", __func__);
         }
 
@@ -4465,7 +4467,7 @@ bool CheckWork(const CBlock &block, CBlockIndex* const pindexPrev)
     if (block.nBits != nBitsRequired)
         return error("%s: incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
 
-    if (block.IsProofOfStake()) {
+    if (block.IsProofOfStake() && pindexPrev->nHeight+1 < ACTIVE_REFUND_HEIGHT) {
         uint256 hashProofOfStake, proof;
         uint256 hash = block.GetHash(pindexPrev->nHeight + 1 >= chainParams.SwitchPhi2Block());
         if (!stake->CheckProof(pindexPrev, block, hashProofOfStake)) {

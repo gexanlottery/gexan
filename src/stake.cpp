@@ -23,6 +23,8 @@
 #include <boost/thread.hpp>
 #include <atomic>
 
+//#define POS_DEBUG
+
 #if defined(DEBUG_DUMP_STAKING_INFO)
 #  include "DEBUG_DUMP_STAKING_INFO.hpp"
 #endif
@@ -58,6 +60,7 @@ static bool isBadPeriod(const int64_t period1, const int64_t period2){
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
 static const unsigned int MODIFIER_INTERVAL = 10 * 60;
 static const unsigned int MODIFIER_INTERVAL_TESTNET = 60;
+const int ACTIVE_POSCHECK_HEIGHT = 250000;
 
 // used to check valid stake hashes vs target
 static const unsigned int POS_TARGET_WEIGHT_RATIO = 65536;
@@ -589,9 +592,9 @@ bool Stake::CheckHashNew(const CBlockIndex* pindexPrev, unsigned int nBits, cons
         DEBUG_DUMP_STAKING_INFO_CheckHash();
     }
 
-    if (IsTestNet() && (hashProofOfStake / bnWeight) > bnTarget) {
-        // 95150-103600 was testing branch, >= 105750 / 0x10000
-        return (pindexPrev->nHeight + 1) < 1005750;
+    if ((hashProofOfStake / bnWeight) > bnTarget) {
+        // manual passing of bad blocks here
+        return (!IsTestNet() && pindexPrev->nHeight < ACTIVE_POSCHECK_HEIGHT);
     }
 
     /* Now check if proof-of-stake hash meets target protocol.
@@ -634,9 +637,13 @@ bool Stake::getPrevBlock(const CBlock curBlock, CBlock &prevBlock, int &nBlockHe
     {
         return false;
     }
+
+    if (nBlockHeight < ACTIVE_POSCHECK_HEIGHT) return false;
     const CTransaction& tx = curBlock.vtx[1];
-    if (!tx.IsCoinStake())
-        return error("%s: called on non-coinstake %s", __func__, tx.ToString());
+    if (!tx.IsCoinStake()) {
+        LogPrintf("%s: called on non-coinstake %s", __func__, tx.ToString());
+	      return false;
+    }
 
     // Kernel (input 0) must match the stake hash target per coin age (nBits).
     const CTxIn& txin = tx.vin[0];
@@ -740,6 +747,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
     const CTransaction& tx = block.vtx[1];
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
+        if (nBlockHeight < ACTIVE_POSCHECK_HEIGHT) return true;
 
     // Kernel (input 0) must match the stake hash target per coin age (nBits)
     const CTxIn& txin = tx.vin[0];
@@ -793,7 +801,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
         bool isValidSpeed = true;
 #endif
 
-        if (!CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
+        if (nBlockHeight > ACTIVE_POSCHECK_HEIGHT && !CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
         {
 #ifdef POS_DEBUG
             isValidHash = false;
@@ -857,7 +865,9 @@ bool Stake::CheckModifierCheckpoints(int nHeight, unsigned int nStakeModifierChe
     if (!IsTestNet()) return true; // Testnet has no checkpoints
 
     // Hard checkpoints of stake modifiers to ensure they are deterministic
-    static std::map<int, unsigned int> mapStakeModifierCheckpoints = boost::assign::map_list_of(0, 0xfd11f4e7u)
+    static std::map<int, unsigned int> mapStakeModifierCheckpoints = boost::assign::map_list_of(0, 0xe0f05322u)
+            (1, 0x79cd8201u)    (219, 0x2ede1bdbu)  (263, 0x61988d2fu)  (667, 0x97ba26d9u)  (2009, 0xff1e536du)
+            (2201, 0x7767eb1cu) (2202, 0xdd218528u)
 
         ;
     if (mapStakeModifierCheckpoints.count(nHeight)) {

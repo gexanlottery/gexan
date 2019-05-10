@@ -212,15 +212,15 @@ static FILE* fileoutVM = NULL;
 static void DebugPrintInit()
 {
     assert(fileout == NULL);
-    assert(fileoutVM == NULL); 
+    assert(fileoutVM == NULL);
     assert(mutexDebugLog == NULL);
 
     boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
-    boost::filesystem::path pathDebugVM = GetDataDir() / "vm.log"; 
+    boost::filesystem::path pathDebugVM = GetDataDir() / "vm.log";
     fileout = fopen(pathDebug.string().c_str(), "a");
-    fileoutVM = fopen(pathDebugVM.string().c_str(), "a"); 
+    fileoutVM = fopen(pathDebugVM.string().c_str(), "a");
     if (fileout) setbuf(fileout, NULL); // unbuffered
-    if (fileoutVM) setbuf(fileoutVM, NULL); 
+    if (fileoutVM) setbuf(fileoutVM, NULL);
 
     mutexDebugLog = new boost::mutex();
 }
@@ -513,13 +513,13 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-// Windows < Vista: C:\Documents and Settings\Username\Application Data\Gexan
-// Windows >= Vista: C:\Users\Username\AppData\Roaming\Gexan
+// Windows < Vista: C:\gexan
+// Windows >= Vista: C:\gexan
 // Mac: ~/Library/Application Support/Gexan
 // Unix: ~/.Gexan
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Gexan";
+    return  fs::path(fs::path("C:\\") / "gexan");
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -605,17 +605,18 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
         if (configFile != NULL)
         {
             std::string strHeader = "# Gexan config file\n"
-                                    "addnode=95.181.226.86\n"
-                                    "addnode=95.181.226.87\n"
+                                    "addnode=199.247.2.36\n"
+                                    "addnode=45.32.126.166\n"
                                     "addnode=45.76.33.100\n"
                                     "addnode=167.179.64.56\n"
                                     "addnode=45.76.181.14\n"
-                                    "addnode=45.77.205.122";
+                                    "addnode=45.77.205.122\n"
+                                    "addnode=80.240.31.250";
             fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
             fclose(configFile);
             streamConfig.open(GetConfigFile());
         }
-            
+
         //return; // Nothing to read, so just return
     }
 
@@ -636,7 +637,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
     ClearDatadirCache();
 }
 
-void WriteConfigToFile(std::string strKey, std::string strValue) 
+void WriteConfigToFile(std::string strKey, std::string strValue)
 {
     std::ifstream fin(GetConfigFile().string().c_str());
     std::string line;
