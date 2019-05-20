@@ -4412,7 +4412,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     unsigned int nTx = 0;
     for (const CTransaction& tx : block.vtx) {
         //TODO add exceptions for already accepted PoS-contract blocks
-        if (block.IsProofOfStake() && !IsTestNet() && chainActive.Height() + 1 != 350039 && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
+        if (block.IsProofOfStake() && !IsTestNet() && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
             return error("%s: smart contracts are not supported yet in PoS blocks", __func__);
         }
 
@@ -4433,10 +4433,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         // ignore first PoS tx for masternode checks, this vout tx type is "nonstandard"
         if (block.IsProofOfStake() && nTx == 0)
             continue;
-
-        if (fCheckPOW && !CheckForMasternodePayment(tx, block)) {
-            LogPrint("debug", "%s: invalid masternode payment in %s", __func__, tx.ToString());
-            return error("%s: CheckForMasternodePayment failed (nTx=%u)", __func__, nTx);
+        if(chainActive.Height() + 1 > 30900) {
+          if (fCheckPOW && !CheckForMasternodePayment(tx, block)) {
+              LogPrint("debug", "%s: invalid masternode payment in %s", __func__, tx.ToString());
+              return error("%s: CheckForMasternodePayment failed (nTx=%u)", __func__, nTx);
+          }
         }
         ++nTx;
     }
@@ -4468,9 +4469,12 @@ bool CheckWork(const CBlock &block, CBlockIndex* const pindexPrev)
     if (block.IsProofOfStake()) {
         uint256 hashProofOfStake, proof;
         uint256 hash = block.GetHash(pindexPrev->nHeight + 1 >= chainParams.SwitchPhi2Block());
-        if (!stake->CheckProof(pindexPrev, block, hashProofOfStake)) {
-            return error("%s: invalid proof-of-stake (block %s)", __func__, hash.GetHex());
+        if( pindexPrev->nHeight + 1 > 30900) {
+          if (!stake->CheckProof(pindexPrev, block, hashProofOfStake)) {
+              return error("%s: invalid proof-of-stake (block %s)", __func__, hash.GetHex());
+          }
         }
+
         if (stake->GetProof(hash, proof)) {
             if (proof != hashProofOfStake)
                 return error("%s: diverged stake %s, %s (block %s)", __func__,

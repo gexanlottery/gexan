@@ -72,7 +72,7 @@ static const int LAST_MULTIPLIED_BLOCK = 69;
 
 static const bool ENABLE_ADVANCED_STAKING = true;
 
-static const int ADVANCED_STAKING_HEIGHT = 70;
+static const int ADVANCED_STAKING_HEIGHT = 100000;
 static const int nGexProtocolSwitchHeightTestnet = 951500;
 
 static std::atomic<bool> nStakingInterrupped;
@@ -473,7 +473,7 @@ bool Stake::CheckHashOld(const CBlockIndex* pindexPrev, unsigned int nBits, cons
     // Weighted target
     int64_t nValueIn = txPrev.vout[prevout.n].nValue;
     uint256 bnWeight = uint256(nValueIn);
-    bnTarget *= bnWeight; // comment out this will cause 'ERROR: CheckWork: invalid proof-of-stake at block 1144'
+    //bnTarget *= bnWeight; // comment out this will cause 'ERROR: CheckWork: invalid proof-of-stake at block 1144'
 
     uint64_t nStakeModifier = pindexPrev->nStakeModifier;
     int nStakeModifierHeight = pindexPrev->nHeight;
@@ -612,8 +612,8 @@ bool Stake::CheckHash(const CBlockIndex* pindexPrev, unsigned int nBits, const C
 
     const int nBlockHeight = (pindexPrev ? pindexPrev->nHeight : chainActive.Height()) + 1;
     const int nNewPoSHeight = IsTestNet() ? nGexProtocolSwitchHeightTestnet : nGexProtocolSwitchHeight;
-    if (nBlockHeight < nNewPoSHeight) // could be skipped if height < last checkpoint
-        return CheckHashOld(pindexPrev, nBits, blockFrom, txPrev, prevout, nTimeTx, hashProofOfStake);
+    //if (nBlockHeight < nNewPoSHeight) // could be skipped if height < last checkpoint
+    //    return CheckHashOld(pindexPrev, nBits, blockFrom, txPrev, prevout, nTimeTx, hashProofOfStake);
     return CheckHashNew(pindexPrev, nBits, blockFrom, txPrev, prevout, nTimeTx, hashProofOfStake);
 }
 
@@ -645,8 +645,11 @@ bool Stake::getPrevBlock(const CBlock curBlock, CBlock &prevBlock, int &nBlockHe
     uint256 prevBlockHash;
     CTransaction txPrev;
     const Consensus::Params& consensusparams = Params().GetConsensus();
-    if (!GetTransaction(txin.prevout.hash, txPrev, consensusparams, prevBlockHash, true))
-        return error("%s: read txPrev failed", __func__);
+    if(nBlockHeight > 30900) {
+      if (!GetTransaction(txin.prevout.hash, txPrev, consensusparams, prevBlockHash, true))
+          return error("%s: read txPrev failed", __func__);
+    }
+
 
     CBlockIndex* pindex = LookupBlockIndex(prevBlockHash);
 
@@ -799,17 +802,21 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
             isValidHash = false;
             invalidHashCnt++;
 #else
-            return error("%s: Refuse PoS block %u (Invalid hash)", __func__, nBlockHeight);
+            if(nBlockHeight < 200 && nBlockHeight > 30900) {
+              return error("%s: Refuse PoS block %u (Invalid hash)", __func__, nBlockHeight);
+            }
 #endif
         }
 
         if (!isSpeedValid(nTime, prevBlock, pindex, nBlockHeight))
         {
 #ifdef POS_DEBUG
-            isValidSpeed = false;
+            isValidHash = false;
             invalidSpeedCnt++;
 #else
-            return error("%s: Refuse PoS block %u (Invalid stake speed)", __func__, nBlockHeight);
+            if(nBlockHeight < 200 && nBlockHeight != 30900) {
+              return error("%s: Refuse PoS block %u (Invalid stake speed)", __func__, nBlockHeight);
+            }
 #endif
         }
 

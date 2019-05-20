@@ -31,9 +31,9 @@ static const int STAKE_TIMESTAMP_MASK = 15;
 
 namespace boost { class thread_group; }
 // Reject all splitted stake blocks under 200 coins
-static const int REJECT_INVALID_SPLIT_BLOCK_HEIGHT = 2465000;
+static const int REJECT_INVALID_SPLIT_BLOCK_HEIGHT = 500000;
 // Reject stake of small inputs
-static const CAmount STAKE_INVALID_SPLIT_MIN_COINS = 50 * COIN;
+static const CAmount STAKE_INVALID_SPLIT_MIN_COINS = 10 * COIN;
 
 struct StakeKernel
 {

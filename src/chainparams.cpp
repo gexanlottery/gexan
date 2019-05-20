@@ -83,13 +83,16 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 // + Contains no strange transactions
 static Checkpoints::MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-                ( 0,   uint256("0x00000afb1e6ef5ae84337e8487d73eec2282be9d2a994b8c61b3555545436257 ") )
+                (     0, uint256("0x00000afb1e6ef5ae84337e8487d73eec2282be9d2a994b8c61b3555545436257"))
+                ( 10000, uint256("0x00000000030ec89faa0c9846ddc9a6976873dca2be32f37e06e75187b7a4919e"))
+                ( 19999, uint256("0x0000000002d5f7f1faf0005b38cf03224d4a4dc0a3bb105bcf936c422c2143c9"))
+                ( 30316, uint256("0x0000000000be38d11b2aef7d1a6662a7fba12ce19936c98829f025137e33945e"))
 
 ;
 
 static const Checkpoints::CCheckpointData data = {
         &mapCheckpoints,
-        1555326000, // * UNIX timestamp of last checkpoint block
+        1558314430, // * UNIX timestamp of last checkpoint block
         0,     // * total number of transactions between genesis and last checkpoint
         //   (the tx=... number in UpdateTip debug.log lines)
         2000        // * estimated number of transactions per day after checkpoint
@@ -158,8 +161,8 @@ public:
         consensus.vDeployments[Consensus::SMART_CONTRACTS_HARDFORK].bit = 30;
 
         nSwitchPhi2Block = 5;
-        nFirstSCBlock = 40;
-        nPruneAfterHeight = 650000;
+        nFirstSCBlock = 100000;
+        nPruneAfterHeight = 3000;
         nSplitRewardBlock = 250;
 
 
@@ -203,12 +206,7 @@ public:
         assert(consensus.hashGenesisBlock == uint256("0x00000afb1e6ef5ae84337e8487d73eec2282be9d2a994b8c61b3555545436257"));
         assert(genesis.hashMerkleRoot == uint256("0xd0cbd2568ec50cd0fad137dfb19b8baebbd46e5b1a5cbb7755d74b98324284e4"));
 
-        vSeeds.push_back(CDNSSeedData("seed1", "199.247.2.36"));
-        vSeeds.push_back(CDNSSeedData("seed2", "45.32.126.166"));
-        vSeeds.push_back(CDNSSeedData("seed3", "45.76.33.100"));
-        vSeeds.push_back(CDNSSeedData("seed4", "167.179.64.56"));
-        vSeeds.push_back(CDNSSeedData("seed5", "45.76.181.14"));
-        vSeeds.push_back(CDNSSeedData("seed6", "45.77.205.122"));
+        vSeeds.push_back(CDNSSeedData("seed1", "seeds.seeder01.gexan.io"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,38);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,63);
