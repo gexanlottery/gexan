@@ -87,12 +87,15 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
                 ( 10000, uint256("0x00000000030ec89faa0c9846ddc9a6976873dca2be32f37e06e75187b7a4919e"))
                 ( 19999, uint256("0x0000000002d5f7f1faf0005b38cf03224d4a4dc0a3bb105bcf936c422c2143c9"))
                 ( 30316, uint256("0x0000000000be38d11b2aef7d1a6662a7fba12ce19936c98829f025137e33945e"))
+                ( 30316, uint256("0x0000000000be38d11b2aef7d1a6662a7fba12ce19936c98829f025137e33945e"))
+                ( 30950, uint256("0x000000000f1561554cff81c35413e032fea2b273bc5f5da023a93a7a082de99b"))
+                ( 31001, uint256("0x00000000022c2bb27279d7260b5ac121dcfe9e41d5504d186b6b1ef540dae6cc"))
 
 ;
 
 static const Checkpoints::CCheckpointData data = {
         &mapCheckpoints,
-        1558314430, // * UNIX timestamp of last checkpoint block
+        1558362077, // * UNIX timestamp of last checkpoint block
         0,     // * total number of transactions between genesis and last checkpoint
         //   (the tx=... number in UpdateTip debug.log lines)
         2000        // * estimated number of transactions per day after checkpoint
@@ -161,7 +164,7 @@ public:
         consensus.vDeployments[Consensus::SMART_CONTRACTS_HARDFORK].bit = 30;
 
         nSwitchPhi2Block = 5;
-        nFirstSCBlock = 100000;
+        nFirstSCBlock = 31100;
         nPruneAfterHeight = 3000;
         nSplitRewardBlock = 250;
 
