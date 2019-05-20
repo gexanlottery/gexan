@@ -92,7 +92,7 @@ bool fRecordLogOpcodes = false;
 bool fIsVMlogFile = false;
 bool fGettingValuesDGP = false;
 
-std::string SCVersion ("/Gexan:2.0.3/");
+std::string SCVersion ("/Gexan:2.0.3.1/");
 
 
 /** The maximum allowed size for a serialized block, in bytes (only for buffer size limits) */
