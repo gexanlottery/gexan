@@ -91,7 +91,7 @@ struct CNodeStateStats;
 #endif
 
 #ifndef WORKING_VERSION
-#define WORKING_VERSION "/Gexan:2.0.3/"
+#define WORKING_VERSION "/Gexan:2.0.3.1/"
 #endif
 
 static const int64_t DARKSEND_COLLATERAL = (5000*COIN); //16120 GEX
