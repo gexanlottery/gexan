@@ -134,7 +134,7 @@ CWaitableCriticalSection csBestBlock;
 CConditionVariable cvBlockChange;
 int nScriptCheckThreads = 0;
 std::atomic_bool fImporting(false);
-std::atomic_bool fReindex(false);
+std::atomic_bool fReindex(true);
 bool fLogEvents = false;
 bool fTxIndex = true;
 bool fAddressIndex = false;
@@ -1925,7 +1925,7 @@ CAmount GetProofOfStakeReward(int64_t nFees, int nHeight)
     CAmount nSubsidy = 0;
 
     if (nHeight <= 50000 && nHeight >= 0) {
-        nSubsidy = 0.4 * COIN;
+        nSubsidy = 0.6 * COIN;
     } else if (nHeight <= 70000 && nHeight >= 50001) {
         nSubsidy = 6.4 * COIN;
     } else if (nHeight <= 200000 && nHeight >= 70001) {

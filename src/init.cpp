@@ -659,7 +659,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
     RenameThread("gex-loadblk");
     const CChainParams &chainparams = Params();
     // -reindex
-    if (fReindex)
+    if (true)
     {
         CImportingNow imp;
         int nFile = 0;
@@ -1543,7 +1543,7 @@ bool AppInit2()
 
     // ********************************************************* Step 7: load block chain
 
-    fReindex = GetBoolArg("-reindex", false);
+    fReindex = GetBoolArg("-reindex", true);
     bool fReindexChainState = GetBoolArg("-reindex-chainstate", false);
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
