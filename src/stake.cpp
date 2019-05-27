@@ -37,6 +37,7 @@
 using namespace std;
 
 #define POS_AGE_THRESHOLD (60 * 60 * 60)
+//#define POS_DEBUG
 
 #ifdef POS_DEBUG
     #define pos_debug(...)  LogPrintf(__VA_ARGS__)
@@ -60,7 +61,7 @@ static const unsigned int MODIFIER_INTERVAL = 10 * 60;
 static const unsigned int MODIFIER_INTERVAL_TESTNET = 60;
 
 // used to check valid stake hashes vs target
-static const unsigned int POS_TARGET_WEIGHT_RATIO = 65536;
+static const unsigned int POS_TARGET_WEIGHT_RATIO = 60;
 
 bool CheckCoinStakeTimestamp(uint32_t nTimeBlock) { return (nTimeBlock & STAKE_TIMESTAMP_MASK) == 0; }
 
@@ -203,7 +204,7 @@ static bool FindModifierBlockFromCandidates(vector <pair<int64_t, uint256>>& vSo
     }
 
 #   if defined(DEBUG_DUMP_STAKING_INFO) && false
-    if (GetBoolArg("-printstakemodifier", false))
+    if (GetBoolArg("-printstakemodifier", true))
         LogPrintf("%s: selected block %d %s %s\n", __func__,
                   pindexSelected->nHeight,
                   pindexSelected->GetBlockHash().GetHex(),
@@ -252,8 +253,8 @@ bool Stake::ComputeNextModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeM
     if (!GetLastStakeModifier(pindexPrev, nStakeModifier, nModifierTime))
         return error("%s: unable to get last modifier", __func__);
 
-#   if defined(DEBUG_DUMP_STAKING_INFO) && false
-    if (GetBoolArg("-printstakemodifier", false))
+#   if defined(DEBUG_DUMP_STAKING_INFO) && true
+    if (GetBoolArg("-printstakemodifier", true))
         LogPrintf("%s: last modifier=%d time=%d\n", __func__, nStakeModifier, nModifierTime); // DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nModifierTime)
 #   endif
 
@@ -296,16 +297,16 @@ bool Stake::ComputeNextModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeM
         // write the entropy bit of the selected block
         nStakeModifierNew |= (uint64_t(pindex->GetStakeEntropyBit()) << nRound);
 
-#       if defined(DEBUG_DUMP_STAKING_INFO) && false
-        if (fDebug || GetBoolArg("-printstakemodifier", false)) //DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nSelectionTime)
+#       if defined(DEBUG_DUMP_STAKING_INFO) && true
+        if (fDebug || GetBoolArg("-printstakemodifier", true)) //DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nSelectionTime)
             LogPrintf("%s: selected round %d stop=%s height=%d bit=%d\n", __func__,
                       nRound, nSelectionTime, pindex->nHeight, pindex->GetStakeEntropyBit());
 #       endif
     }
 
-#   if defined(DEBUG_DUMP_STAKING_INFO) && false
+#   if defined(DEBUG_DUMP_STAKING_INFO) && true
     // Print selection map for visualization of the selected blocks
-    if (fDebug || GetBoolArg("-printstakemodifier", false)) {
+    if (fDebug || GetBoolArg("-printstakemodifier", true)) {
         string strSelectionMap = "";
         // '-' indicates proof-of-work blocks not selected
         strSelectionMap.insert(0, pindexPrev->nHeight - nHeightFirstCandidate + 1, '-');
@@ -323,7 +324,7 @@ bool Stake::ComputeNextModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeM
         }
         LogPrintf("%s: selection height [%d, %d] map %s\n", __func__, nHeightFirstCandidate, pindexPrev->nHeight, strSelectionMap.c_str());
     }
-    if (fDebug || GetBoolArg("-printstakemodifier", false)) {
+    if (fDebug || GetBoolArg("-printstakemodifier", true)) {
         LogPrintf("%s: new modifier=%d time=%s\n", __func__, nStakeModifierNew, pindexPrev->GetBlockTime()); // DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pindexPrev->GetBlockTime())
     }
 #   endif
@@ -520,6 +521,10 @@ bool Stake::CheckHashOld(const CBlockIndex* pindexPrev, unsigned int nBits, cons
 // New CheckHash function
 bool Stake::CheckHashNew(const CBlockIndex* pindexPrev, unsigned int nBits, const CBlock& blockFrom, const CTransaction& txPrev, const COutPoint& prevout, unsigned int& nTimeTx, uint256& hashProofOfStake)
 {
+
+    if (fDebug) {
+        LogPrintf("CheckHashNew --- \n");
+    }
     if (pindexPrev == nullptr)
         return false;
 
@@ -529,11 +534,17 @@ bool Stake::CheckHashNew(const CBlockIndex* pindexPrev, unsigned int nBits, cons
     uint32_t nTimeTxPrev = txPrev.nTime ? txPrev.nTime : nTimeBlockFrom;
 
     // Transaction timestamp violation
+    if (fDebug) {
+        LogPrintf("nTimeTx < nTimeTxPrev --- \n");
+    }
     if (nTimeTx < nTimeTxPrev) {
         return false;
     }
 
     // Min age requirement
+    if (fDebug) {
+        LogPrintf("GetStakeAge --- \n");
+    }
     if (GetStakeAge(nTimeBlockFrom) > nTimeTx)
         return false;
 
@@ -634,6 +645,8 @@ bool Stake::getPrevBlock(const CBlock curBlock, CBlock &prevBlock, int &nBlockHe
     {
         return false;
     }
+
+    if(nBlockHeight < 30900) return true;
     const CTransaction& tx = curBlock.vtx[1];
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
@@ -731,13 +744,16 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
     int nBlockHeight = (pindexPrev ? pindexPrev->nHeight : chainActive.Height()) + 1;
 
     // Reject all blocks from older forks
-    if (nBlockHeight > SNAPSHOT_BLOCK && block.nTime < SNAPSHOT_VALID_TIME)
-        return error("%s: Invalid block %d, time too old (%x) for %s", __func__, nBlockHeight, block.nTime, block.GetHash().GetHex());
+    //if (nBlockHeight > SNAPSHOT_BLOCK && block.nTime < SNAPSHOT_VALID_TIME)
+    //    return error("%s: Invalid block %d, time too old (%x) for %s", __func__, nBlockHeight, block.nTime, block.GetHash().GetHex());
 
     if (block.vtx.size() < 2)
         return error("%s: called on non-coinstake %s", __func__, block.ToString());
 
     const CTransaction& tx = block.vtx[1];
+
+    if (nBlockHeight < 30900) return true;
+
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
 
@@ -793,7 +809,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
         bool isValidSpeed = true;
 #endif
 
-        if (!CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
+        if (nBlockHeight > 30900 && !CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
         {
 #ifdef POS_DEBUG
             isValidHash = false;
@@ -857,7 +873,13 @@ bool Stake::CheckModifierCheckpoints(int nHeight, unsigned int nStakeModifierChe
     if (!IsTestNet()) return true; // Testnet has no checkpoints
 
     // Hard checkpoints of stake modifiers to ensure they are deterministic
-    static std::map<int, unsigned int> mapStakeModifierCheckpoints = boost::assign::map_list_of(0, 0xfd11f4e7u)
+    static std::map<int, unsigned int> mapStakeModifierCheckpoints = boost::assign::map_list_of(0, 0xe0f05322)
+          ( 219, 0xf642a180)
+          ( 667, 0x074aafba)
+          ( 678, 0xb338b34d)
+          ( 699, 0x0a4753d7)
+          (30602, 0x330b43e6)
+          (40391, 0xfe82a488)
 
         ;
     if (mapStakeModifierCheckpoints.count(nHeight)) {

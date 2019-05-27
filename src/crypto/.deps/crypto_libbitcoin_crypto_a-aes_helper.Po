@@ -1,46 +1,49 @@
 crypto/crypto_libbitcoin_crypto_a-aes_helper.o: crypto/aes_helper.c \
- crypto/sph_types.h \
- /usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/limits.h \
- /usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/syslimits.h \
- /usr/share/mingw-w64/include/limits.h \
- /usr/share/mingw-w64/include/crtdefs.h \
- /usr/share/mingw-w64/include/_mingw.h \
- /usr/share/mingw-w64/include/_mingw_mac.h \
- /usr/share/mingw-w64/include/_mingw_secapi.h \
- /usr/share/mingw-w64/include/vadefs.h \
- /usr/share/mingw-w64/include/sdks/_mingw_directx.h \
- /usr/share/mingw-w64/include/sdks/_mingw_ddk.h \
- /usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stdint.h \
- /usr/share/mingw-w64/include/stdint.h \
- /usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stddef.h \
- /usr/share/mingw-w64/include/stddef.h
+ /usr/include/stdc-predef.h crypto/sph_types.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/features.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+ /usr/include/linux/limits.h \
+ /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h
+
+/usr/include/stdc-predef.h:
 
 crypto/sph_types.h:
 
-/usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/limits.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h:
 
-/usr/lib/gcc/x86_64-w64-mingw32/4.8/include-fixed/syslimits.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h:
 
-/usr/share/mingw-w64/include/limits.h:
+/usr/include/limits.h:
 
-/usr/share/mingw-w64/include/crtdefs.h:
+/usr/include/features.h:
 
-/usr/share/mingw-w64/include/_mingw.h:
+/usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
-/usr/share/mingw-w64/include/_mingw_mac.h:
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
 
-/usr/share/mingw-w64/include/_mingw_secapi.h:
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
-/usr/share/mingw-w64/include/vadefs.h:
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
-/usr/share/mingw-w64/include/sdks/_mingw_directx.h:
+/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
 
-/usr/share/mingw-w64/include/sdks/_mingw_ddk.h:
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
 
-/usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stdint.h:
+/usr/include/linux/limits.h:
 
-/usr/share/mingw-w64/include/stdint.h:
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
 
-/usr/lib/gcc/x86_64-w64-mingw32/4.8/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
 
-/usr/share/mingw-w64/include/stddef.h:
+/usr/include/stdint.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar.h:

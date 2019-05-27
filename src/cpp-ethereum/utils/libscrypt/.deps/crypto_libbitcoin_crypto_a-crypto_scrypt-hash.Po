@@ -1,2 +1,5 @@
 cpp-ethereum/utils/libscrypt/crypto_libbitcoin_crypto_a-crypto_scrypt-hash.o: \
- cpp-ethereum/utils/libscrypt/crypto_scrypt-hash.c
+ cpp-ethereum/utils/libscrypt/crypto_scrypt-hash.c \
+ /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

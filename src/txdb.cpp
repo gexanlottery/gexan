@@ -547,7 +547,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     stake->MarkStake(pindexNew->prevoutStake, pindexNew->nStakeTime);
                     auto const &hash(pindexNew->GetBlockHash());
                     uint256 proof;
-                    if (pindexNew->hashProofOfStake == 0) {
+                    if (diskindex.nHeight > 30900 && pindexNew->hashProofOfStake == 0) {
                         LogPrint("debug", "skip invalid indexed orphan block %d %s with empty data\n", pindexNew->nHeight, hash.GetHex());
                         nDiscarded++;
                         nFirstDiscarded = diskindex.nHeight < nFirstDiscarded ? diskindex.nHeight : nFirstDiscarded;
@@ -556,7 +556,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                         continue;
                     } else if (stake->GetProof(hash, proof)) {
                         if (proof != pindexNew->hashProofOfStake)
-                            return error("%s: diverged stake %s, %s (block %s)\n", __func__, 
+                            return error("%s: diverged stake %s, %s (block %s)\n", __func__,
                                          pindexNew->hashProofOfStake.GetHex(), proof.GetHex(), hash.GetHex());
                     } else {
                         stake->SetProof(hash, pindexNew->hashProofOfStake);
@@ -711,4 +711,3 @@ bool CBlockTreeDB::WipeHeightIndex() {
 }
 
 ///////////////////////////////////////////////////////
-

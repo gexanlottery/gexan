@@ -92,7 +92,7 @@ bool fRecordLogOpcodes = false;
 bool fIsVMlogFile = false;
 bool fGettingValuesDGP = false;
 
-std::string SCVersion ("/Gexan:2.0.0/");
+std::string SCVersion ("/Gexan:2.0.3.1/");
 
 
 /** The maximum allowed size for a serialized block, in bytes (only for buffer size limits) */
@@ -4227,6 +4227,9 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
     const int nHeight = pindexPrev ? pindexPrev->nHeight + 1 : 0;
     bool usePhi2 = nHeight >= chainParams.SwitchPhi2Block();
 
+    if(nHeight < 30600) {
+      return true;
+    }
     // Check if a block is already accepted. These blocks cannot be checked for masternode payments,
     // because we don't know, which masternodes is active at that moment of accepting this block,
     // so that why we can't verify if tx from this block was actually rewards the masternode and doesn't
@@ -4412,7 +4415,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     unsigned int nTx = 0;
     for (const CTransaction& tx : block.vtx) {
         //TODO add exceptions for already accepted PoS-contract blocks
-        if (block.IsProofOfStake() && !IsTestNet() && chainActive.Height() + 1 != 350039 && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
+        if (block.IsProofOfStake() && !IsTestNet() && chainActive.Height() + 1 != 219 && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
             return error("%s: smart contracts are not supported yet in PoS blocks", __func__);
         }
 
