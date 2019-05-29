@@ -134,7 +134,7 @@ CWaitableCriticalSection csBestBlock;
 CConditionVariable cvBlockChange;
 int nScriptCheckThreads = 0;
 std::atomic_bool fImporting(false);
-std::atomic_bool fReindex(true);
+std::atomic_bool fReindex(false);
 bool fLogEvents = false;
 bool fTxIndex = true;
 bool fAddressIndex = false;
@@ -1925,7 +1925,7 @@ CAmount GetProofOfStakeReward(int64_t nFees, int nHeight)
     CAmount nSubsidy = 0;
 
     if (nHeight <= 50000 && nHeight >= 0) {
-        nSubsidy = 0.6 * COIN;
+        nSubsidy = 0.4 * COIN;
     } else if (nHeight <= 70000 && nHeight >= 50001) {
         nSubsidy = 6.4 * COIN;
     } else if (nHeight <= 200000 && nHeight >= 70001) {
@@ -4227,6 +4227,9 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
     const int nHeight = pindexPrev ? pindexPrev->nHeight + 1 : 0;
     bool usePhi2 = nHeight >= chainParams.SwitchPhi2Block();
 
+    if(nHeight < 41500) {
+      return true;
+    }
     // Check if a block is already accepted. These blocks cannot be checked for masternode payments,
     // because we don't know, which masternodes is active at that moment of accepting this block,
     // so that why we can't verify if tx from this block was actually rewards the masternode and doesn't
@@ -4412,7 +4415,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     unsigned int nTx = 0;
     for (const CTransaction& tx : block.vtx) {
         //TODO add exceptions for already accepted PoS-contract blocks
-        if (block.IsProofOfStake() && !IsTestNet() && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
+        if (block.IsProofOfStake() && !IsTestNet() && chainActive.Height() + 1 != 219 && (tx.HasOpSpend() || tx.HasCreateOrCall())) {
             return error("%s: smart contracts are not supported yet in PoS blocks", __func__);
         }
 
@@ -4433,11 +4436,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         // ignore first PoS tx for masternode checks, this vout tx type is "nonstandard"
         if (block.IsProofOfStake() && nTx == 0)
             continue;
-        if(chainActive.Height() + 1 > 30900) {
-          if (fCheckPOW && !CheckForMasternodePayment(tx, block)) {
-              LogPrint("debug", "%s: invalid masternode payment in %s", __func__, tx.ToString());
-              return error("%s: CheckForMasternodePayment failed (nTx=%u)", __func__, nTx);
-          }
+
+        if (fCheckPOW && !CheckForMasternodePayment(tx, block)) {
+            LogPrint("debug", "%s: invalid masternode payment in %s", __func__, tx.ToString());
+            return error("%s: CheckForMasternodePayment failed (nTx=%u)", __func__, nTx);
         }
         ++nTx;
     }
@@ -4469,12 +4471,9 @@ bool CheckWork(const CBlock &block, CBlockIndex* const pindexPrev)
     if (block.IsProofOfStake()) {
         uint256 hashProofOfStake, proof;
         uint256 hash = block.GetHash(pindexPrev->nHeight + 1 >= chainParams.SwitchPhi2Block());
-        if( pindexPrev->nHeight + 1 > 30900) {
-          if (!stake->CheckProof(pindexPrev, block, hashProofOfStake)) {
-              return error("%s: invalid proof-of-stake (block %s)", __func__, hash.GetHex());
-          }
+        if (!stake->CheckProof(pindexPrev, block, hashProofOfStake)) {
+            return error("%s: invalid proof-of-stake (block %s)", __func__, hash.GetHex());
         }
-
         if (stake->GetProof(hash, proof)) {
             if (proof != hashProofOfStake)
                 return error("%s: diverged stake %s, %s (block %s)", __func__,

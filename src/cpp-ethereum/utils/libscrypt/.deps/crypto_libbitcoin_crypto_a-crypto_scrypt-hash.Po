@@ -1,2 +1,0 @@
-cpp-ethereum/utils/libscrypt/crypto_libbitcoin_crypto_a-crypto_scrypt-hash.o: \
- cpp-ethereum/utils/libscrypt/crypto_scrypt-hash.c

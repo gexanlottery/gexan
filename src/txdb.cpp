@@ -547,7 +547,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     stake->MarkStake(pindexNew->prevoutStake, pindexNew->nStakeTime);
                     auto const &hash(pindexNew->GetBlockHash());
                     uint256 proof;
-                    if (pindexNew->hashProofOfStake == 0) {
+                    if (diskindex.nHeight > 45000 && pindexNew->hashProofOfStake == 0) {
                         LogPrint("debug", "skip invalid indexed orphan block %d %s with empty data\n", pindexNew->nHeight, hash.GetHex());
                         nDiscarded++;
                         nFirstDiscarded = diskindex.nHeight < nFirstDiscarded ? diskindex.nHeight : nFirstDiscarded;
