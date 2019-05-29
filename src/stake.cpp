@@ -646,7 +646,7 @@ bool Stake::getPrevBlock(const CBlock curBlock, CBlock &prevBlock, int &nBlockHe
         return false;
     }
 
-    if(nBlockHeight < 30900) return true;
+    if(nBlockHeight < 45000) return true;
     const CTransaction& tx = curBlock.vtx[1];
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
@@ -752,7 +752,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
 
     const CTransaction& tx = block.vtx[1];
 
-    if (nBlockHeight < 30900) return true;
+    if (nBlockHeight < 45000) return true;
 
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
@@ -809,7 +809,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
         bool isValidSpeed = true;
 #endif
 
-        if (nBlockHeight > 30900 && !CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
+        if (nBlockHeight > 45000 && !CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
         {
 #ifdef POS_DEBUG
             isValidHash = false;
