@@ -4227,7 +4227,7 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
     const int nHeight = pindexPrev ? pindexPrev->nHeight + 1 : 0;
     bool usePhi2 = nHeight >= chainParams.SwitchPhi2Block();
 
-    if(nHeight < 30600) {
+    if(nHeight < 41500) {
       return true;
     }
     // Check if a block is already accepted. These blocks cannot be checked for masternode payments,
