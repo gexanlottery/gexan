@@ -125,7 +125,7 @@ private:
     QAction* signMessageAction;
     QAction* verifyMessageAction;
     QAction* bip38ToolAction;
-    QAction* aboutAction;
+    //QAction* aboutAction;
     QAction* checkForUpdateAction;
     QAction* receiveCoinsAction;
     QAction* optionsAction;

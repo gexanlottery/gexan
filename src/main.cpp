@@ -92,7 +92,7 @@ bool fRecordLogOpcodes = false;
 bool fIsVMlogFile = false;
 bool fGettingValuesDGP = false;
 
-std::string SCVersion ("/Gexan:2.0.3.1/");
+std::string SCVersion ("/Gexan:2.0.3.2/");
 
 
 /** The maximum allowed size for a serialized block, in bytes (only for buffer size limits) */
@@ -4227,7 +4227,7 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
     const int nHeight = pindexPrev ? pindexPrev->nHeight + 1 : 0;
     bool usePhi2 = nHeight >= chainParams.SwitchPhi2Block();
 
-    if(nHeight < 41500) {
+    if(nHeight < 44400) {
       return true;
     }
     // Check if a block is already accepted. These blocks cannot be checked for masternode payments,

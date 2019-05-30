@@ -116,7 +116,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle* n
                                                                             signMessageAction(0),
                                                                             verifyMessageAction(0),
                                                                             bip38ToolAction(0),
-                                                                            aboutAction(0),
+                                                                            //aboutAction(0),
                                                                             checkForUpdateAction(0),
                                                                             receiveCoinsAction(0),
                                                                             optionsAction(0),
@@ -544,9 +544,9 @@ void BitcoinGUI::createActions() {
     quitAction->setStatusTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
-    aboutAction = new QAction(QIcon(":/icons/gexcoin_black"), tr("&About Gexan"), this);
-    aboutAction->setStatusTip(tr("Show information about Gexan"));
-    aboutAction->setMenuRole(QAction::AboutRole);
+    //aboutAction = new QAction(QIcon(":/icons/gexcoin_black"), tr("&About Gexan"), this);
+    //aboutAction->setStatusTip(tr("Show information about Gexan"));
+    //aboutAction->setMenuRole(QAction::AboutRole);
 
 #if QT_VERSION < 0x050000
     aboutQtAction = new QAction(QIcon(":/trolltech/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
@@ -623,7 +623,7 @@ void BitcoinGUI::createActions() {
     connect(qApp, SIGNAL(aboutToQuit()), qApp, SLOT(quit()));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
-    connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
+    //connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
@@ -713,7 +713,7 @@ void BitcoinGUI::createMenuBar() {
     help->addAction(openInfoAction);
     help->addAction(showHelpMessageAction);
     help->addSeparator();
-    help->addAction(aboutAction);
+    //help->addAction(aboutAction);
     help->addAction(aboutQtAction);
     help->addSeparator();
 }

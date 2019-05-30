@@ -37,6 +37,7 @@
 using namespace std;
 
 #define POS_AGE_THRESHOLD (60 * 60 * 60)
+//#define POS_DEBUG
 
 #ifdef POS_DEBUG
     #define pos_debug(...)  LogPrintf(__VA_ARGS__)
@@ -645,7 +646,7 @@ bool Stake::getPrevBlock(const CBlock curBlock, CBlock &prevBlock, int &nBlockHe
         return false;
     }
 
-    if(nBlockHeight < 45000) return true;
+    if(nBlockHeight < 44400) return true;
     const CTransaction& tx = curBlock.vtx[1];
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
@@ -751,7 +752,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
 
     const CTransaction& tx = block.vtx[1];
 
-    if (nBlockHeight < 45000) return true;
+    if (nBlockHeight < 44400) return true;
 
     if (!tx.IsCoinStake())
         return error("%s: called on non-coinstake %s", __func__, tx.ToString());
@@ -808,7 +809,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
         bool isValidSpeed = true;
 #endif
 
-        if (nBlockHeight > 45000 && !CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
+        if (nBlockHeight > 44400 && !CheckHash(pindex->pprev, block.nBits, prevBlock, txPrev, txin.prevout, nTime, hashProofOfStake))
         {
 #ifdef POS_DEBUG
             isValidHash = false;
