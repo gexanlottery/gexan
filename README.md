@@ -1,2 +1,2 @@
 GEXAN
-Gambling blockchain lottery!
+Gambling blockchain!
